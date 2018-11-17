@@ -20,13 +20,14 @@ import numpy as np
 import os
 import soundfile as sf
 
-TESTWAVPATH = r'D:\goodfiles\20181111\tts\data\beautiful_duo.wav'
+DATADIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data")
+
+TESTWAVPATH = os.path.join(DATADIR, "beautiful_duo.wav")
 
 
-def eval_world():
-    base_dir = "E:\Python_Workspace\\tensorflow-exercises"
+def test_world_syn():
     # 读取文件
-    WAV_FILE = os.path.join(base_dir, 'files\LJ001-0001.wav')
+    WAV_FILE = TESTWAVPATH
 
     # 提取语音特征
     x, fs = sf.read(WAV_FILE)
@@ -92,7 +93,7 @@ def eval_world():
     sf.write('test/female_like.wav', female_like, fs)
 
     # 5.转换基频（不能直接转换）
-    x2, fs2 = sf.read('utterance/A2_0.wav')
+    x2, fs2 = sf.read(TESTWAVPATH)
     f02, sp2, ap2 = pw.wav2world(x2, fs2)
     f02 = f02[:len(f0)]
     print(len(f0), len(f02))
@@ -124,22 +125,27 @@ def test_world():
     # , args.frame_period)
 
     # 写入音频文件
-    outpath = os.path.splitext(TESTWAVPATH)[0] + "_world.wav"
+    outpath = os.path.splitext(TESTWAVPATH)[0] + "_w.wav"
     sf.write(outpath, _y, fs)
 
 
-def test_mel():
-    from tacotron.util.audio import wave2mel, spec2wave, wave2spec, load_wav
+def test_spec():
+    from tacotron.util.audio import wave2mel, spec2wave, wave2spec, load_wav, save_wav
     wavdata = load_wav(TESTWAVPATH)
-    meldata = wave2mel(wavdata)
-    print(meldata.shape)
+    spec = wave2spec(wavdata)
+    print(spec.shape)
+    wavdata = spec2wave(spec)
+    outpath = TESTWAVPATH[:-4] + "_spec.wav"
+    save_wav(wavdata, outpath)
 
 
 if __name__ == "__main__":
     print(__file__)
     text = "我家朵朵是世界上最漂亮的朵朵，世界上最漂亮的朵朵就是我家朵朵。"
+    # test_world_syn()
     test_world()
-    # test_mel()
+    test_spec()
     import wave
+
     wavdata = wave.open(TESTWAVPATH)
     print(wavdata)

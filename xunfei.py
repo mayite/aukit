@@ -10,6 +10,12 @@ APIKey
 a65d8fda71993073b0c529033085df2d
 IP白名单
 112.96.173.60
+
+APPID
+5befc9d2
+APIKey
+e563e28f505858ea4d4e5245c1136edd
+112.96.109.44
 """
 
 import os
@@ -21,29 +27,28 @@ import urllib.request
 import urllib.parse
 from tqdm import tqdm
 
-
 # API请求地址、API KEY、APP ID等参数，提前填好备用
 api_url = "http://api.xfyun.cn/v1/service/v1/tts"
-API_KEY = "a65d8fda71993073b0c529033085df2d"#""替换成你的APIKey"
-APP_ID = "5be6dcdd"#"替换成你的APPID"
-OUTPUT_FILE = "/home/duoyi/PycharmProjects/tts/data/xunfei_wavs/beautiful_duo.wav"    # 输出音频的保存路径，请根据自己的情况替换
+API_KEY = "a65d8fda71993073b0c529033085df2d"  # ""替换成你的APIKey"
+APP_ID = "5be6dcdd"  # "替换成你的APPID"
+OUTPUT_FILE = r"D:\git\tts\data\beautiful_duo.wav"  # 输出音频的保存路径，请根据自己的情况替换
 TEXT = "我家朵朵是世界上最漂亮的朵朵，世界上最漂亮的朵朵就是我家朵朵。"
-OUTPUTDIR = "/home/duoyi/PycharmProjects/tts/data/xunfei_wavs"
+OUTPUTDIR = r"D:\data\xunfei_wavs"
 # 构造输出音频配置参数
 Param = {
-    "auf": "audio/L16;rate=16000",    #音频采样率
-    "aue": "raw",    #音频编码，raw(生成wav)或lame(生成mp3)
+    "auf": "audio/L16;rate=16000",  # 音频采样率
+    "aue": "raw",  # 音频编码，raw(生成wav)或lame(生成mp3)
     "voice_name": "xiaoyan",
-    "speed": "50",    #语速[0,100]
-    "volume": "77",    #音量[0,100]
-    "pitch": "50",    #音高[0,100]
-    "engine_type": "aisound"    #引擎类型。aisound（普通效果），intp65（中文），intp65_en（英文）
+    "speed": "50",  # 语速[0,100]
+    "volume": "77",  # 音量[0,100]
+    "pitch": "50",  # 音高[0,100]
+    "engine_type": "aisound"  # 引擎类型。aisound（普通效果），intp65（中文），intp65_en（英文）
 }
 # 配置参数编码为base64字符串，过程：字典→明文字符串→utf8编码→base64(bytes)→base64字符串
-Param_str = json.dumps(Param)    #得到明文字符串
-Param_utf8 = Param_str.encode('utf8')    #得到utf8编码(bytes类型)
-Param_b64 = base64.b64encode(Param_utf8)    #得到base64编码(bytes类型)
-Param_b64str = Param_b64.decode('utf8')    #得到base64字符串
+Param_str = json.dumps(Param)  # 得到明文字符串
+Param_utf8 = Param_str.encode('utf8')  # 得到utf8编码(bytes类型)
+Param_b64 = base64.b64encode(Param_utf8)  # 得到base64编码(bytes类型)
+Param_b64str = Param_b64.decode('utf8')  # 得到base64字符串
 
 # 构造HTTP请求的头部
 time_now = str(int(time.time()))
@@ -71,9 +76,9 @@ def test():
 
     # 读取结果
     response_head = response.headers['Content-Type']
-    if(response_head == "audio/mpeg"):
+    if (response_head == "audio/mpeg"):
         out_file = open(OUTPUT_FILE, 'wb')
-        data = response.read() # a 'bytes' object
+        data = response.read()  # a 'bytes' object
         out_file.write(data)
         out_file.close()
         print('输出文件: ' + OUTPUT_FILE)
@@ -95,8 +100,8 @@ def getwave(text=""):
 
     # 读取结果
     response_head = response.headers['Content-Type']
-    if(response_head == "audio/mpeg"):
-        data = response.read() # a 'bytes' object
+    if (response_head == "audio/mpeg"):
+        data = response.read()  # a 'bytes' object
         return data
     else:
         print(response.read().decode('utf8'))
@@ -119,28 +124,34 @@ def run(idx_text_dict=None, idx_path_dict=None):
         data = getwave(idx_text_dict[idx])
         savewave(data, idx_path_dict[idx])
 
+
 def getdicts(inpath=""):
     idx_text_dict = {}
     idx_path_dict = {}
-    with open(inpath) as fin:
+    filename = os.path.splitext(os.path.basename(inpath))[0]
+    savedir = os.path.join(r"D:\data", f"{filename}_wavs")
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+    with open(inpath, encoding="utf8") as fin:
         for idx, text in enumerate(fin):
             idx_text_dict[idx] = text.strip()
-            idx_path_dict[idx] = os.path.join(OUTPUTDIR, "xunfei_{}.wav".format(idx))
+            idx_path_dict[idx] = os.path.join(f"{savedir}", f"xunfei_{filename}_{idx}.wav")
     return idx_text_dict, idx_path_dict
-
 
 
 if __name__ == "__main__":
     print(__file__)
 
-    # test()
+    test()
+    input("enter")
+    from __init__ import DATADIR
 
-    inpath = "/home/duoyi/PycharmProjects/tts/data/interview_questions.txt"
+    inpath = os.path.join(DATADIR, "interview_questions.txt")
     itdt, ipdt = getdicts(inpath)
 
     itpath = os.path.splitext(inpath)[0] + "_idx2text.json"
-    json.dump(itdt, open(itpath, "wt"), indent=4, ensure_ascii=False)
+    json.dump(itdt, open(itpath, "wt", encoding="utf8"), indent=4, ensure_ascii=False)
     ippath = os.path.splitext(inpath)[0] + "_idx2path.json"
-    json.dump(ipdt, open(ippath, "wt"), indent=4, ensure_ascii=False)
+    json.dump(ipdt, open(ippath, "wt", encoding="utf8"), indent=4, ensure_ascii=False)
 
     run(itdt, ipdt)
