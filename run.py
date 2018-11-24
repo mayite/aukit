@@ -11,13 +11,18 @@ a65d8fda71993073b0c529033085df2d
 IP白名单
 112.96.173.60
 """
-
+from scipy.io import wavfile
+import numpy as np
 import soundfile as sf
 import pyworld as pw
 from scipy.io import wavfile
-import matplotlib.pyplot as plt
-import numpy as np
 import os
+import re
+import json
+import collections as clt
+import numpy as np
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 import soundfile as sf
 
 DATADIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data")
@@ -139,13 +144,48 @@ def test_spec():
     save_wav(wavdata, outpath)
 
 
+def test_rename_os():
+    indir = r"D:\data\xunfei_wavs"
+    outdir = r"D:\data\interview_questions_wavs"
+    for fname in os.listdir(indir):
+        fpath = os.path.join(indir, fname)
+        segs = fname.split("_")
+        out_fname = "_".join([segs[0], "interview_questions", segs[-1]])
+        outpath = os.path.join(outdir, out_fname)
+        os.rename(fpath, outpath)
+
+
+def test_pydub_os():
+    from pydub import AudioSegment as auseg
+    inpath = r"D:\git\tts\data\beautiful_duo.wav"
+    song = auseg.from_wav(inpath)
+    outpath = os.path.splitext(inpath)[0] + "_dub.wav"
+    song.export(outpath, format="wav")
+    from tune import play_audio
+    play_audio(outpath)
+
+
+def test_split_os():
+    inpath = r"D:\git\tts\data\beautiful_duo.wav"
+    frate, wavdata = wavfile.read(inpath)
+    data_split_list = data_split(data=wavdata, win=frate // 10)
+    print(len(data_split_list))
+    for i, wavdata in enumerate(data_split_list, 1):
+        outpath = inpath.replace(".wav", f"_{i}.wav")
+        wavfile.write(outpath, frate, wavdata)
+        # out_wavdata = wavdata[::100]
+        # print(out_wavdata.shape)
+        # plt.plot(out_wavdata)
+        # plt.show()
+
+
 if __name__ == "__main__":
     print(__file__)
-    text = "我家朵朵是世界上最漂亮的朵朵，世界上最漂亮的朵朵就是我家朵朵。"
     # test_world_syn()
-    test_world()
-    test_spec()
-    import wave
-
-    wavdata = wave.open(TESTWAVPATH)
-    print(wavdata)
+    # test_world()
+    # test_spec()
+    # import wave
+    #
+    # wavdata = wave.open(TESTWAVPATH)
+    # print(wavdata)
+    # test_rename_os()

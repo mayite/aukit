@@ -15,7 +15,8 @@ APPID
 5befc9d2
 APIKey
 e563e28f505858ea4d4e5245c1136edd
-112.96.109.44
+192.168.43.161
+112.96.115.69
 """
 
 import os
@@ -29,10 +30,14 @@ from tqdm import tqdm
 
 # API请求地址、API KEY、APP ID等参数，提前填好备用
 api_url = "http://api.xfyun.cn/v1/service/v1/tts"
-API_KEY = "a65d8fda71993073b0c529033085df2d"  # ""替换成你的APIKey"
-APP_ID = "5be6dcdd"  # "替换成你的APPID"
-OUTPUT_FILE = r"D:\git\tts\data\beautiful_duo.wav"  # 输出音频的保存路径，请根据自己的情况替换
-TEXT = "我家朵朵是世界上最漂亮的朵朵，世界上最漂亮的朵朵就是我家朵朵。"
+API_KEY = "e563e28f505858ea4d4e5245c1136edd"  # ""替换成你的APIKey"
+APP_ID = "5befc9d2"  # "替换成你的APPID"
+# OUTPUT_FILE = r"D:\git\tts\data\beautiful_duo.wav"  # 输出音频的保存路径，请根据自己的情况替换
+# TEXT = "我家朵朵是世界上最漂亮的朵朵，世界上最漂亮的朵朵就是我家朵朵。"
+# TEXT = "学习知识要善于思考,思考再思考。"
+# OUTPUT_FILE = r"D:\git\tts\data\learn.wav"
+TEXT = "你若安好便是晴天，做最好的自己。"
+OUTPUT_FILE = r"D:\git\tts\data\essay.wav"
 OUTPUTDIR = r"D:\data\xunfei_wavs"
 # 构造输出音频配置参数
 Param = {
@@ -134,6 +139,11 @@ def getdicts(inpath=""):
         os.makedirs(savedir)
     with open(inpath, encoding="utf8") as fin:
         for idx, text in enumerate(fin):
+            if not text.strip():
+                continue
+            segs = text.strip().split(".")
+            idx = segs[0]
+            text = "".join(segs[1:])
             idx_text_dict[idx] = text.strip()
             idx_path_dict[idx] = os.path.join(f"{savedir}", f"xunfei_{filename}_{idx}.wav")
     return idx_text_dict, idx_path_dict
@@ -142,11 +152,12 @@ def getdicts(inpath=""):
 if __name__ == "__main__":
     print(__file__)
 
-    test()
-    input("enter")
+    # test()
+    # input("enter")
     from __init__ import DATADIR
 
-    inpath = os.path.join(DATADIR, "interview_questions.txt")
+    # inpath = os.path.join(DATADIR, "interview_questions.txt")
+    inpath = r"D:\git\tts\data\xinqing.txt"
     itdt, ipdt = getdicts(inpath)
 
     itpath = os.path.splitext(inpath)[0] + "_idx2text.json"
