@@ -103,3 +103,4 @@ def split_compare_os():
 
 if __name__ == "__main__":
     print(__file__)
+    split_compare_os()

@@ -152,17 +152,14 @@ def getdicts(inpath=""):
 if __name__ == "__main__":
     print(__file__)
 
-    # test()
+    test()
     # input("enter")
-    from __init__ import DATADIR
-
-    # inpath = os.path.join(DATADIR, "interview_questions.txt")
-    inpath = r"D:\git\tts\data\xinqing.txt"
-    itdt, ipdt = getdicts(inpath)
-
-    itpath = os.path.splitext(inpath)[0] + "_idx2text.json"
-    json.dump(itdt, open(itpath, "wt", encoding="utf8"), indent=4, ensure_ascii=False)
-    ippath = os.path.splitext(inpath)[0] + "_idx2path.json"
-    json.dump(ipdt, open(ippath, "wt", encoding="utf8"), indent=4, ensure_ascii=False)
-
-    run(itdt, ipdt)
+    # inpath = r"D:\git\tts\data\xinqing.txt"
+    # itdt, ipdt = getdicts(inpath)
+    #
+    # itpath = os.path.splitext(inpath)[0] + "_idx2text.json"
+    # json.dump(itdt, open(itpath, "wt", encoding="utf8"), indent=4, ensure_ascii=False)
+    # ippath = os.path.splitext(inpath)[0] + "_idx2path.json"
+    # json.dump(ipdt, open(ippath, "wt", encoding="utf8"), indent=4, ensure_ascii=False)
+    #
+    # run(itdt, ipdt)

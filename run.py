@@ -4,12 +4,7 @@
 # @file: run.py
 # @time: 2018-11-10
 """
-APPID
-5be6dcdd
-APIKey
-a65d8fda71993073b0c529033085df2d
-IP白名单
-112.96.173.60
+## 实验
 """
 from scipy.io import wavfile
 import numpy as np

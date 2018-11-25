@@ -6,6 +6,7 @@
 """
 """
 import os
+
 DATADIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data")
 
 TESTWAVPATH = os.path.join(DATADIR, "beautiful_duo.wav")

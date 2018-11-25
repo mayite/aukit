@@ -115,6 +115,6 @@ if __name__ == "__main__":
     print(__file__)
     indir = r"D:\data\xinqing_wavs"
     play_tune(indir, speedrate=1, pitchrate=1)
-    # inpath = r"D:\git\tts\data\beautiful_duo.wav"
-    # for rate in np.arange(0.7, 1.7, 0.1):
-    #     tune_os(inpath=inpath, speedrate=1., pitchrate=1)
+    inpath = r"D:\git\tts\data\beautiful_duo.wav"
+    for rate in np.arange(0.7, 1.7, 0.1):
+        tune_os(inpath=inpath, speedrate=1., pitchrate=1)
