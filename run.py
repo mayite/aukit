@@ -165,20 +165,6 @@ def test_pydub_os():
     play_audio(outpath)
 
 
-def test_split_os():
-    inpath = r"D:\git\tts\data\beautiful_duo.wav"
-    frate, wavdata = wavfile.read(inpath)
-    data_split_list = data_split(data=wavdata, win=frate // 10)
-    print(len(data_split_list))
-    for i, wavdata in enumerate(data_split_list, 1):
-        outpath = inpath.replace(".wav", f"_{i}.wav")
-        wavfile.write(outpath, frate, wavdata)
-        # out_wavdata = wavdata[::100]
-        # print(out_wavdata.shape)
-        # plt.plot(out_wavdata)
-        # plt.show()
-
-
 if __name__ == "__main__":
     print(__file__)
     # test_world_syn()
