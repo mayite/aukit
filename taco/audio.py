@@ -1,10 +1,31 @@
 import librosa
 import librosa.filters
-import math
 import numpy as np
-import tensorflow as tf
 import scipy
-from tacotron.hparams import hparams
+import tensorflow as tf
+
+# Default hyperparameters:
+hparams = tf.contrib.training.HParams(
+    # Audio:
+    num_mels=80,
+    num_freq=1025,
+    sample_rate=20000,
+    frame_length_ms=50,
+    frame_shift_ms=12.5,
+    preemphasis=0.97,
+    min_level_db=-100,
+    ref_level_db=20,
+    # Eval:
+    max_iters=200,
+    griffin_lim_iters=60,
+    power=1.5,  # Power to raise magnitudes to prior to Griffin-Lim
+)
+
+
+def hparams_debug_string():
+    values = hparams.values()
+    hp = ['  %s: %s' % (name, values[name]) for name in sorted(values)]
+    return 'Hyperparameters:\n' + '\n'.join(hp)
 
 
 def load_wav(path):
