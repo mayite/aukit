@@ -16,36 +16,12 @@ default_hparams = HParams(
     # Audio
     mel_basis=None,
     num_mels=80,  # Number of mel-spectrogram channels and local conditioning dimensionality
-    #  network
-    rescale=True,  # Whether to rescale audio prior to preprocessing
-    rescaling_max=0.9,  # Rescaling value
-    clip_mels_length=True,
-    max_mel_frames=900,
-    use_lws=False,
-    silence_threshold=2,  # silence threshold used for sound trimming for wavenet preprocessing
 
     # Mel spectrogram
-    n_fft=800,  # Extra window size is filled with 0 paddings to match this parameter
+    n_fft=2048,  # 800,  # Extra window size is filled with 0 paddings to match this parameter
     hop_size=200,  # For 16000Hz, 200 = 12.5 ms (0.0125 * sample_rate)
     win_size=800,  # For 16000Hz, 800 = 50 ms (If None, win_size = n_fft) (0.05 * sample_rate)
     sample_rate=16000,  # 16000Hz (corresponding to librispeech) (sox --i <filename>)
-
-    frame_shift_ms=None,  # Can replace hop_size parameter. (Recommended: 12.5)
-
-    trim_fft_size=512,
-    trim_hop_size=128,
-    trim_top_db=23,
-
-    # Mel and Linear spectrograms normalization/scaling and clipping
-    signal_normalization=True,
-    # Whether to normalize mel spectrograms to some predefined range (following below parameters)
-    allow_clipping_in_normalization=True,  # Only relevant if mel_normalization = True
-    symmetric_mels=True,
-    max_abs_value=4.,
-    normalize_for_wavenet=True,
-    # whether to rescale to [0, 1] for wavenet. (better audio quality)
-    clip_for_wavenet=True,
-    preemphasize=True,  # whether to apply filter
     preemphasis=0.97,  # filter coefficient.
 
     # Limits
@@ -145,7 +121,7 @@ def melspectrogram(y, hparams=None):
 
 def stft(y, hparams=None):
     hparams = hparams or default_hparams
-    return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=hparams.hop_length, win_length=hparams.win_length)
+    return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=hparams.hop_size, win_length=hparams.win_size)
 
 
 def pre_emphasis(x, hparams=None):

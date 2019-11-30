@@ -22,10 +22,6 @@ default_hparams = HParams(
     # Audio
     num_mels=80,  # Number of mel-spectrogram channels and local conditioning dimensionality
     #  network
-    rescale=True,  # Whether to rescale audio prior to preprocessing
-    rescaling_max=0.9,  # Rescaling value
-    clip_mels_length=True,
-    max_mel_frames=900,
     use_lws=False,
     silence_threshold=2,  # silence threshold used for sound trimming for wavenet preprocessing
 
@@ -36,10 +32,6 @@ default_hparams = HParams(
     sample_rate=16000,  # 16000Hz (corresponding to librispeech) (sox --i <filename>)
 
     frame_shift_ms=None,  # Can replace hop_size parameter. (Recommended: 12.5)
-
-    trim_fft_size=512,
-    trim_hop_size=128,
-    trim_top_db=23,
 
     # Mel and Linear spectrograms normalization/scaling and clipping
     signal_normalization=True,
@@ -64,7 +56,7 @@ default_hparams = HParams(
     # Griffin Lim
     power=1.5,
     # Only used in G&L inversion, usually values between 1.2 and 1.5 are a good choice.
-    griffin_lim_iters=10,  # 60,
+    griffin_lim_iters=30,  # 60,
     # Number of G&L iterations, typically 30 is enough but we use 60 to ensure convergence.
 )
 
@@ -126,7 +118,7 @@ def get_hop_size(hparams=None):
     return hop_size
 
 
-def linearspectrogram(wav, hparams=None):
+def linear_spectrogram(wav, hparams=None):
     hparams = hparams or default_hparams
     D = _stft(preemphasis(wav, hparams.preemphasis, hparams.preemphasize), hparams)
     S = _amp_to_db(np.abs(D), hparams) - hparams.ref_level_db
@@ -136,7 +128,7 @@ def linearspectrogram(wav, hparams=None):
     return S
 
 
-def melspectrogram(wav, hparams=None):
+def mel_spectrogram(wav, hparams=None):
     hparams = hparams or default_hparams
     D = _stft(preemphasis(wav, hparams.preemphasis, hparams.preemphasize), hparams)
     S = _amp_to_db(_linear_to_mel(np.abs(D), hparams), hparams) - hparams.ref_level_db
@@ -165,15 +157,29 @@ def inv_linear_spectrogram(linear_spectrogram, hparams=None):
         return inv_preemphasis(_griffin_lim(S ** hparams.power, hparams), hparams.preemphasis, hparams.preemphasize)
 
 
-def inv_linear_spectrogram_tensorflow(spectrogram, hparams=None):
+def inv_linear_spectrogram_tensorflow(linear_spectrogram, hparams=None):
     '''Builds computational graph to convert spectrogram to waveform using TensorFlow.
-
     Unlike inv_spectrogram, this does NOT invert the preemphasis. The caller should call
     inv_preemphasis on the output after running the graph.
+    linear_spectrogram.shape[1] = n_fft
     '''
     hparams = hparams or default_hparams
-    S = _db_to_amp_tensorflow(_denormalize_tensorflow(spectrogram, hparams) + hparams.ref_level_db)
+    S = _db_to_amp_tensorflow(_denormalize_tensorflow(linear_spectrogram, hparams) + hparams.ref_level_db)
     return _griffin_lim_tensorflow(tf.pow(S, hparams.power), hparams)
+
+
+def inv_linear_spectrogram_tf(linear_spectrogram, hparams=None):
+    """
+    返回wav语音信号。
+    linear_spectrogram.shape[1] = num_freq = (n_fft / 2) + 1
+    """
+    hparams = hparams or default_hparams
+    _shape = linear_spectrogram.shape
+    tmp = np.concatenate(
+        (linear_spectrogram, np.zeros((_shape[0], (hparams.n_fft // 2) + 1 - _shape[1]), dtype=np.float32)), axis=1)
+    wav_tf = inv_linear_spectrogram_tensorflow(tmp, hparams)
+    with tf.Session() as sess:
+        return sess.run(wav_tf)
 
 
 def inv_mel_spectrogram(mel_spectrogram, hparams=None):
