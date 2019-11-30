@@ -1,6 +1,7 @@
 # author: kdd
 # date: 
 """
+编辑音频，去除静音，切分音频。
 """
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent

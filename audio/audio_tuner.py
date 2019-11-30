@@ -3,7 +3,7 @@
 # @author: KDD
 # @time: 2018-11-10
 """
-## 调音
+调节语速，调节音调。
 """
 from pydub import AudioSegment
 from scipy.io import wavfile

@@ -3,9 +3,10 @@
 # author: kuangdd
 # date: 2019/11/23
 """
+播放音频信号。
+todo 播放本地音频文件，bytes音频信号，wav音频信号。
 """
 from pyaudio import PyAudio
-import os
 import wave
 
 
