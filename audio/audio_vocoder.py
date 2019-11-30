@@ -1,3 +1,10 @@
+#!usr/bin/env python
+# -*- coding: utf-8 -*-
+# author: kuangdd
+# date: 2019/11/30
+"""
+RTVC的vocoder的语音处理模块。
+"""
 import math
 import numpy as np
 import librosa
@@ -5,8 +12,9 @@ from scipy.signal import lfilter
 from tensorflow.contrib.training import HParams
 
 # Default hyperparameters
-_syn_hp = HParams(
+default_hparams = HParams(
     # Audio
+    mel_basis=None,
     num_mels=80,  # Number of mel-spectrogram channels and local conditioning dimensionality
     #  network
     rescale=True,  # Whether to rescale audio prior to preprocessing
@@ -55,48 +63,6 @@ _syn_hp = HParams(
     # Number of G&L iterations, typically 30 is enough but we use 60 to ensure convergence.
 )
 
-# Audio settings------------------------------------------------------------------------
-# Match the values of the synthesizer
-sample_rate = _syn_hp.sample_rate
-n_fft = _syn_hp.n_fft
-num_mels = _syn_hp.num_mels
-hop_length = _syn_hp.hop_size
-win_length = _syn_hp.win_size
-fmin = _syn_hp.fmin
-min_level_db = _syn_hp.min_level_db
-ref_level_db = _syn_hp.ref_level_db
-mel_max_abs_value = _syn_hp.max_abs_value
-preemphasis = _syn_hp.preemphasis
-apply_preemphasis = _syn_hp.preemphasize
-
-bits = 9  # bit depth of signal
-mu_law = True  # Recommended to suppress noise if using raw bits in hp.voc_mode
-# below
-
-
-# WAVERNN / VOCODER --------------------------------------------------------------------------------
-voc_mode = 'RAW'  # either 'RAW' (softmax on raw bits) or 'MOL' (sample from
-# mixture of logistics)
-voc_upsample_factors = (5, 5, 8)  # NB - this needs to correctly factorise hop_length
-voc_rnn_dims = 512
-voc_fc_dims = 512
-voc_compute_dims = 128
-voc_res_out_dims = 128
-voc_res_blocks = 10
-
-# Training
-voc_batch_size = 100
-voc_lr = 1e-4
-voc_gen_at_checkpoint = 5  # number of samples to generate at each checkpoint
-voc_pad = 2  # this will pad the input so that the resnet can 'see' wider
-# than input length
-voc_seq_len = hop_length * 5  # must be a multiple of hop_length
-
-# Generating / Synthesizing
-voc_gen_batched = True  # very fast (realtime+) single utterance batched generation
-voc_target = 8000  # target number of samples to be generated in each batch entry
-voc_overlap = 400  # number of samples for crossfading between batches
-
 
 def label_2_float(x, bits):
     return 2 * x / (2 ** bits - 1.) - 1.
@@ -108,12 +74,12 @@ def float_2_label(x, bits):
     return x.clip(0, 2 ** bits - 1)
 
 
-def load_wav(path):
-    return librosa.load(path, sr=hp.sample_rate)[0]
+def load_wav(path, sr):
+    return librosa.load(path, sr=sr)[0]
 
 
-def save_wav(x, path):
-    librosa.output.write_wav(path, x.astype(np.float32), sr=hp.sample_rate)
+def save_wav(x, path, sr):
+    librosa.output.write_wav(path, x.astype(np.float32), sr=sr)
 
 
 def split_signal(x):
@@ -131,26 +97,28 @@ def encode_16bits(x):
     return np.clip(x * 2 ** 15, -2 ** 15, 2 ** 15 - 1).astype(np.int16)
 
 
-mel_basis = None
-
-
-def linear_to_mel(spectrogram):
-    global mel_basis
-    if mel_basis is None:
-        mel_basis = build_mel_basis()
+def linear_to_mel(spectrogram, hparams=None):
+    hparams = hparams or default_hparams
+    if hparams.mel_basis is None:
+        mel_basis = build_mel_basis(hparams)
+    else:
+        mel_basis = hparams.mel_basis
     return np.dot(mel_basis, spectrogram)
 
 
-def build_mel_basis():
-    return librosa.filters.mel(hp.sample_rate, hp.n_fft, n_mels=hp.num_mels, fmin=hp.fmin)
+def build_mel_basis(hparams=None):
+    hparams = hparams or default_hparams
+    return librosa.filters.mel(hparams.sample_rate, hparams.n_fft, n_mels=hparams.num_mels, fmin=hparams.fmin)
 
 
-def normalize(S):
-    return np.clip((S - hp.min_level_db) / -hp.min_level_db, 0, 1)
+def normalize(S, hparams=None):
+    hparams = hparams or default_hparams
+    return np.clip((S - hparams.min_level_db) / -hparams.min_level_db, 0, 1)
 
 
-def denormalize(S):
-    return (np.clip(S, 0, 1) * -hp.min_level_db) + hp.min_level_db
+def denormalize(S, hparams=None):
+    hparams = hparams or default_hparams
+    return (np.clip(S, 0, 1) * -hparams.min_level_db) + hparams.min_level_db
 
 
 def amp_to_db(x):
@@ -161,28 +129,33 @@ def db_to_amp(x):
     return np.power(10.0, x * 0.05)
 
 
-def spectrogram(y):
-    D = stft(y)
-    S = amp_to_db(np.abs(D)) - hp.ref_level_db
-    return normalize(S)
+def spectrogram(y, hparams=None):
+    hparams = hparams or default_hparams
+    D = stft(y, hparams)
+    S = amp_to_db(np.abs(D)) - hparams.ref_level_db
+    return normalize(S, hparams)
 
 
-def melspectrogram(y):
-    D = stft(y)
-    S = amp_to_db(linear_to_mel(np.abs(D)))
-    return normalize(S)
+def melspectrogram(y, hparams=None):
+    hparams = hparams or default_hparams
+    D = stft(y, hparams)
+    S = amp_to_db(linear_to_mel(np.abs(D), hparams))
+    return normalize(S, hparams)
 
 
-def stft(y):
-    return librosa.stft(y=y, n_fft=hp.n_fft, hop_length=hp.hop_length, win_length=hp.win_length)
+def stft(y, hparams=None):
+    hparams = hparams or default_hparams
+    return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=hparams.hop_length, win_length=hparams.win_length)
 
 
-def pre_emphasis(x):
-    return lfilter([1, -hp.preemphasis], [1], x)
+def pre_emphasis(x, hparams=None):
+    hparams = hparams or default_hparams
+    return lfilter([1, -hparams.preemphasis], [1], x)
 
 
-def de_emphasis(x):
-    return lfilter([1], [1, -hp.preemphasis], x)
+def de_emphasis(x, hparams=None):
+    hparams = hparams or default_hparams
+    return lfilter([1], [1, -hparams.preemphasis], x)
 
 
 def encode_mu_law(x, mu):
@@ -197,3 +170,7 @@ def decode_mu_law(y, mu, from_labels=True):
     mu = mu - 1
     x = np.sign(y) / mu * ((1 + mu) ** np.abs(y) - 1)
     return x
+
+
+if __name__ == "__main__":
+    print(__file__)
