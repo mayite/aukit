@@ -1,0 +1,68 @@
+#!usr/bin/env python
+# -*- coding: utf-8 -*-
+# author: kuangdd
+# date: 2019/12/1
+"""
+"""
+from pathlib import Path
+from functools import partial
+from multiprocessing.pool import Pool
+from matplotlib import pyplot as plt
+from tqdm import tqdm
+import collections as clt
+import os
+import re
+import json
+import numpy as np
+import shutil
+import librosa
+from scipy.io import wavfile
+import io
+
+def load_wav(path, sr=None, with_sr=False):
+    if sr is None:
+        return load_wav_wavfile(path, with_sr=with_sr)
+    else:
+        return load_wav_librosa(path, sr=sr, with_sr=with_sr)
+
+
+def save_wav(wav, path, sr=None):
+    save_wav_wavfile(wav, path=path, sr=sr)
+
+
+def load_wav_librosa(path, sr, with_sr=False):
+    wav = librosa.core.load(path, sr=sr)[0]
+    return (wav, sr) if with_sr else wav
+
+
+def load_wav_wavfile(path, sr=None, with_sr=False):
+    sr, wav = wavfile.read(path)
+    wav = wav / np.max(np.abs(wav))
+    return (wav, sr) if with_sr else wav
+
+
+def save_wav_librosa(wav, path, sr):
+    librosa.output.write_wav(path, wav, sr=sr)
+
+
+def save_wav_wavfile(wav, path, sr):
+    out = wav * 32767 / max(0.01, np.max(np.abs(wav)))
+    # proposed by @dsmiller
+    wavfile.write(path, sr, out.astype(np.int16))
+
+
+def anything2bytesio(src, sr=None):
+    if type(src) in {list, np.array, np.ndarray, np.matrix}:
+        out_io = io.BytesIO()
+        save_wav(src, out_io, sr)
+    elif type(src) in {bytes}:
+        out_io = io.BytesIO(src)
+    elif type(src) in {str}:
+        out_io = io.BytesIO(open(src, "rb").read())
+    else:
+        raise TypeError
+    return out_io
+
+
+if __name__ == "__main__":
+    print(__file__)

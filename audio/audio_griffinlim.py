@@ -36,8 +36,8 @@ default_hparams = HParams(
     # Mel and Linear spectrograms normalization/scaling and clipping
     signal_normalization=True,
     # Whether to normalize mel spectrograms to some predefined range (following below parameters)
-    allow_clipping_in_normalization=True,  # Only relevant if mel_normalization = True
-    symmetric_mels=True,
+    allow_clipping_in_normalization=True,  # True,  # Only relevant if mel_normalization = True
+    symmetric_mels=True,  # True,
     max_abs_value=4.,
     normalize_for_wavenet=True,
     # whether to rescale to [0, 1] for wavenet. (better audio quality)

@@ -4,31 +4,40 @@
 # date: 2019/11/23
 """
 播放音频信号。
-todo 播放本地音频文件，bytes音频信号，wav音频信号。
 """
 from pyaudio import PyAudio
+from scipy.io import wavfile
+import io
 import wave
+import numpy as np
 
 
-def play_audio_io(inpath):
-    """
-    播放音频
-    :param inpath:
-    :return:
-    """
-    print(f"正在播放：{inpath}")
-    wf = wave.open(inpath, 'rb')
-    play_audio(wf)
+def save_wav(wav, path, sr):
+    out = wav * 32767 / max(0.01, np.max(np.abs(wav)))
+    # proposed by @dsmiller
+    wavfile.write(path, sr, out.astype(np.int16))
 
 
-def play_audio(data=None):
+def anything2bytesio(src, sr=None):
+    if type(src) in {list, np.array, np.ndarray, np.matrix}:
+        out_io = io.BytesIO()
+        save_wav(src, out_io, sr)
+    elif type(src) in {bytes}:
+        out_io = io.BytesIO(src)
+    elif type(src) in {str}:
+        out_io = io.BytesIO(open(src, "rb").read())
+    else:
+        raise TypeError
+    return out_io
+
+
+def play_audio(src=None, sr=16000):
     chunk = 1024  # 2014kb
-    wf = data
+    bytesio = anything2bytesio(src, sr=sr)
+    wf = wave.open(bytesio, "rb")
     p = PyAudio()
     stream = p.open(format=p.get_format_from_width(wf.getsampwidth()), channels=wf.getnchannels(),
                     rate=wf.getframerate(), output=True)
-
-    data = wf.readframes(chunk)  # 读取数据
 
     while True:
         data = wf.readframes(chunk)

@@ -15,6 +15,7 @@ from tensorflow.contrib.training import HParams
 default_hparams = HParams(
     # Audio
     mel_basis=None,
+    inv_mel_basis=None,
     num_mels=80,  # Number of mel-spectrogram channels and local conditioning dimensionality
 
     # Mel spectrogram
@@ -22,6 +23,7 @@ default_hparams = HParams(
     hop_size=200,  # For 16000Hz, 200 = 12.5 ms (0.0125 * sample_rate)
     win_size=800,  # For 16000Hz, 800 = 50 ms (If None, win_size = n_fft) (0.05 * sample_rate)
     sample_rate=16000,  # 16000Hz (corresponding to librispeech) (sox --i <filename>)
+    preemphasize=False,  # whether to apply filter
     preemphasis=0.97,  # filter coefficient.
 
     # Limits
@@ -34,9 +36,6 @@ default_hparams = HParams(
 
     # Griffin Lim
     power=1.5,
-    # Only used in G&L inversion, usually values between 1.2 and 1.5 are a good choice.
-    griffin_lim_iters=10,  # 60,
-    # Number of G&L iterations, typically 30 is enough but we use 60 to ensure convergence.
 )
 
 
@@ -82,6 +81,15 @@ def linear_to_mel(spectrogram, hparams=None):
     return np.dot(mel_basis, spectrogram)
 
 
+def mel_to_linear(mel_spectrogram, hparams=None):
+    hparams = hparams or default_hparams
+    if hparams.inv_mel_basis is None:
+        _inv_mel_basis = np.linalg.pinv(build_mel_basis(hparams))
+    else:
+        _inv_mel_basis = hparams.inv_mel_basis
+    return np.maximum(1e-10, np.dot(_inv_mel_basis, mel_spectrogram))
+
+
 def build_mel_basis(hparams=None):
     hparams = hparams or default_hparams
     return librosa.filters.mel(hparams.sample_rate, hparams.n_fft, n_mels=hparams.num_mels, fmin=hparams.fmin)
@@ -105,18 +113,34 @@ def db_to_amp(x):
     return np.power(10.0, x * 0.05)
 
 
-def spectrogram(y, hparams=None):
+def linear_spectrogram(y, hparams=None):
     hparams = hparams or default_hparams
-    D = stft(y, hparams)
+    D = stft(pre_emphasis(y, hparams), hparams)
     S = amp_to_db(np.abs(D)) - hparams.ref_level_db
     return normalize(S, hparams)
 
 
-def melspectrogram(y, hparams=None):
+def mel_spectrogram(y, hparams=None):
     hparams = hparams or default_hparams
-    D = stft(y, hparams)
+    D = stft(pre_emphasis(y, hparams), hparams)
     S = amp_to_db(linear_to_mel(np.abs(D), hparams))
     return normalize(S, hparams)
+
+
+def mel_spectrogram_feature(wav, hparams=None):
+    hparams = hparams or default_hparams
+    """
+    Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
+    Note: this not a log-mel spectrogram.
+    """
+    frames = librosa.feature.melspectrogram(
+        wav,
+        hparams.sample_rate,
+        n_fft=hparams.n_fft,
+        hop_length=hparams.hop_size,
+        n_mels=hparams.num_mels
+    )
+    return amp_to_db(frames.astype(np.float32))
 
 
 def stft(y, hparams=None):
@@ -126,12 +150,18 @@ def stft(y, hparams=None):
 
 def pre_emphasis(x, hparams=None):
     hparams = hparams or default_hparams
-    return lfilter([1, -hparams.preemphasis], [1], x)
+    if hparams.preemphasize:
+        return lfilter([1, -hparams.preemphasis], [1], x)
+    else:
+        return x
 
 
 def de_emphasis(x, hparams=None):
     hparams = hparams or default_hparams
-    return lfilter([1], [1, -hparams.preemphasis], x)
+    if hparams.preemphasize:
+        return lfilter([1], [1, -hparams.preemphasis], x)
+    else:
+        return x
 
 
 def encode_mu_law(x, mu):
