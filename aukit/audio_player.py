@@ -7,6 +7,7 @@
 """
 from pyaudio import PyAudio
 from scipy.io import wavfile
+import sys
 import io
 import wave
 import numpy as np
@@ -48,6 +49,12 @@ def play_audio(src=None, sr=16000):
     stream.close()
     p.terminate()  # 关闭 PyAudio
     print('播放结束！')
+
+
+def play_audio_cmd():
+    fpath = sys.argv[1]
+    sr = sys.argv[2]
+    play_audio(fpath, sr)
 
 
 if __name__ == "__main__":

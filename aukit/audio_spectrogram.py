@@ -11,8 +11,20 @@ import librosa
 from scipy.signal import lfilter
 from tensorflow.contrib.training import HParams
 
+
+class Dict2Obj(dict):
+    def __init__(self, *args, **kwargs):
+        super(Dict2Obj, self).__init__(*args, **kwargs)
+
+    def __getattr__(self, key):
+        value = self[key]
+        if isinstance(value, dict):
+            value = Dict2Obj(value)
+        return value
+
+
 # Default hyperparameters
-default_hparams = HParams(
+default_hparams = Dict2Obj(dict(
     # Audio
     mel_basis=None,
     inv_mel_basis=None,
@@ -36,7 +48,7 @@ default_hparams = HParams(
 
     # Griffin Lim
     power=1.5,
-)
+))
 
 
 def label_2_float(x, bits):

@@ -12,10 +12,20 @@ import tensorflow as tf
 from scipy import signal
 from scipy.io import wavfile
 
-from tensorflow.contrib.training import HParams
+
+class Dict2Obj(dict):
+    def __init__(self, *args, **kwargs):
+        super(Dict2Obj, self).__init__(*args, **kwargs)
+
+    def __getattr__(self, key):
+        value = self[key]
+        if isinstance(value, dict):
+            value = Dict2Obj(value)
+        return value
+
 
 # Default hyperparameters
-default_hparams = HParams(
+default_hparams = Dict2Obj(dict(
     # Conversions
     mel_basis=None,
     inv_mel_basis=None,
@@ -58,7 +68,7 @@ default_hparams = HParams(
     # Only used in G&L inversion, usually values between 1.2 and 1.5 are a good choice.
     griffin_lim_iters=30,  # 60,
     # Number of G&L iterations, typically 30 is enough but we use 60 to ensure convergence.
-)
+))
 
 
 def hparams_debug_string(hparams=None):

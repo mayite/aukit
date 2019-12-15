@@ -1,6 +1,8 @@
-# audiotools
-语音处理相关工具。
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# @author: KDD
+# @time: 2018-11-10
+"""
 ## aukit
 
 aukit: audio toolkit
@@ -35,3 +37,9 @@ griffinlim声码器，线性频谱转语音，梅尔频谱转语音，TensorFlow
 
 ### audio_world
 world声码器，提取语音的基频、频谱包络和非周期信号，频谱转为语音。
+"""
+
+__version__ = '1.0.0'
+
+if __name__ == "__main__":
+    print(__file__)

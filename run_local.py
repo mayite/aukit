@@ -18,10 +18,10 @@ import shutil
 
 
 def run_spectrogram():
-    from audio import audio_spectrogram as asp
-    from audio import audio_griffinlim as agf
-    from audio import audio_io as aio
-    from audio.audio_player import play_audio
+    from aukit import audio_spectrogram as asp
+    from aukit import audio_griffinlim as agf
+    from aukit import audio_io as aio
+    from aukit.audio_player import play_audio
     inpath = r"E:/data/temp/01.wav"
     wav, sr = aio.load_wav(inpath, with_sr=True)
     print(wav.shape, sr)
@@ -46,9 +46,9 @@ def run_spectrogram():
 
 def run_world():
     from scipy.io import wavfile
-    from audio import audio_world as awd
-    from audio import audio_player as apr
-    from audio import audio_io as aio
+    from aukit import audio_world as awd
+    from aukit import audio_player as apr
+    from aukit import audio_io as aio
     inpath = r"E:/data/temp/01.wav"
     # sr, x = wavfile.read(inpath)
     x, sr = aio.load_wav(inpath, with_sr=True)

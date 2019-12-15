@@ -13,10 +13,20 @@ import webrtcvad
 import librosa
 import struct
 
-from tensorflow.contrib.training import HParams
+
+class Dict2Obj(dict):
+    def __init__(self, *args, **kwargs):
+        super(Dict2Obj, self).__init__(*args, **kwargs)
+
+    def __getattr__(self, key):
+        value = self[key]
+        if isinstance(value, dict):
+            value = Dict2Obj(value)
+        return value
+
 
 # Default hyperparameters
-default_hparams = HParams(
+default_hparams = Dict2Obj(dict(
     int16_max=(2 ** 15) - 1,
     ## Mel-filterbank
     mel_window_length=25,  # In milliseconds
@@ -42,7 +52,7 @@ default_hparams = HParams(
 
     ## Audio volume normalization
     audio_norm_target_dBFS=-30,
-)
+))
 
 
 def hparams_debug_string(hparams):
