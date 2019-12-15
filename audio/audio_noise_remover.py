@@ -14,6 +14,7 @@ import ctypes as ct
 
 
 def remove_noise(x: np.array, sr=16000, **kwargs):
+    noise_span = kwargs.get("noise_span", (0, 100))
     # 计算参数
     unit_ = 20  # 每帧时长，单位ms
     len_ = unit_ * sr // 1000  # 样本中帧的大小
@@ -34,7 +35,6 @@ def remove_noise(x: np.array, sr=16000, **kwargs):
     nFFT = 2 * 2 ** (nextpow2(len_))
     noise_mean = np.zeros(nFFT)
 
-    noise_span = kwargs.get("noise_span", (0, 100))
     sidx = noise_span[0] // unit_
     eidx = noise_span[1] // unit_
     for k in range(sidx, eidx):

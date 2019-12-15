@@ -17,7 +17,7 @@ import numpy as np
 import shutil
 
 
-def run_spec():
+def run_spectrogram():
     from audio import audio_spectrogram as asp
     from audio import audio_griffinlim as agf
     from audio import audio_io as aio
@@ -44,6 +44,21 @@ def run_spec():
     play_audio(wav_mg, sr)
 
 
+def run_world():
+    from scipy.io import wavfile
+    from audio import audio_world as awd
+    from audio import audio_player as apr
+    from audio import audio_io as aio
+    inpath = r"E:/data/temp/01.wav"
+    # sr, x = wavfile.read(inpath)
+    x, sr = aio.load_wav(inpath, with_sr=True)
+    f0, sp, ap = awd.world_spectrogram(x, sr)
+    y = awd.inv_world_spectrogram(f0, sp, ap, sr)
+    apr.play_audio(x, sr)
+    apr.play_audio(y, sr)
+
+
 if __name__ == "__main__":
     print(__file__)
-    run_spec()
+    # run_spectrogram()
+    run_world()

@@ -3,21 +3,13 @@
 # author: kuangdd
 # date: 2019/12/1
 """
+语音保存、导入。
 """
-from pathlib import Path
-from functools import partial
-from multiprocessing.pool import Pool
-from matplotlib import pyplot as plt
-from tqdm import tqdm
-import collections as clt
-import os
-import re
-import json
-import numpy as np
-import shutil
-import librosa
 from scipy.io import wavfile
+import numpy as np
+import librosa
 import io
+
 
 def load_wav(path, sr=None, with_sr=False):
     if sr is None:
