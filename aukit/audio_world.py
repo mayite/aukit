@@ -67,46 +67,49 @@ def inv_world_spectrogram(f0, sp, ap, sr, **kwargs):
     return y
 
 
-def tune_pitch(f0, sp, ap, rate=1.):
+def tune_pitch(f0, sp, ap, rate=1., fix=False):
     """调音高"""
     f0_out = f0 * rate
-    sp_out = fix_sp(sp, rate)
-    return f0_out, sp_out, ap
+    if fix:
+        sp = fix_sp(sp, rate)
+    return f0_out, sp, ap
 
 
-def tune_robot(f0, sp, ap, rate=1.):
+def tune_robot(f0, sp, ap, rate=1., fix=False):
     """调机器人音"""
     m = np.percentile(f0[f0 > 0], 61.8)
     f0_out = np.ones_like(f0) * m * rate
-    sp_out = fix_sp(sp, rate)
-    return f0_out, sp_out, ap
+    if fix:
+        sp = fix_sp(sp, rate)
+    return f0_out, sp, ap
 
 
-def assign_pitch(f0, sp, ap, base=250):
+def assign_pitch(f0, sp, ap, base=250, fix=False):
     """指定音高"""
     m = np.percentile(f0[f0 > 0], 61.8)
     rate = base / m
     f0_out = f0 * rate
-    sp_out = fix_sp(sp, rate)
-    return f0_out, sp_out, ap
+    if fix:
+        sp = fix_sp(sp, rate)
+    return f0_out, sp, ap
 
 
-def assign_robot(f0, sp, ap, base=250):
+def assign_robot(f0, sp, ap, base=250, fix=False):
     """指定音高的机器人音"""
     m = np.percentile(f0[f0 > 0], 61.8)
     rate = base / m
     f0_out = np.ones_like(f0) * m * rate
-    sp_out = fix_sp(sp, rate)
-    return f0_out, sp_out, ap
+    if fix:
+        sp = fix_sp(sp, rate)
+    return f0_out, sp, ap
 
 
 def fix_sp(sp, rate=1.):
     """修调频谱包络"""
-    sp_len = sp.shape[0]
     sp_dim = sp.shape[1]
     sp_out = np.zeros_like(sp)
     for f in range(sp_dim):
-        f2 = min(sp_len, int(f / rate))
+        f2 = min(sp_dim - 1, int(f / rate))
         sp_out[:, f] = sp[:, f2]
     return sp_out
 
