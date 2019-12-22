@@ -8,13 +8,10 @@
 
 from setuptools import setup, find_packages
 
-from aukit import __version__
+from aukit import __doc__, __version__
 
 install_requires = ['webrtcvad', 'pydub', 'lws', 'scipy', 'numpy',
                     'pyaudio', 'librosa', 'pyworld', 'tensorflow', 'sounddevice']
-
-with open("README.md", "rt", encoding="utf8") as fin:
-    long_description = fin.read()
 
 setup(
     name="aukit",
@@ -22,7 +19,7 @@ setup(
     author="kuangdd",
     author_email="kqhyj@163.com",
     description="audio toolkit",
-    long_description=long_description,
+    long_description=__doc__,
     long_description_content_type="text/markdown",
     url="https://github.com/KuangDD/aukit",
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),

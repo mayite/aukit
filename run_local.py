@@ -61,8 +61,13 @@ def run_world():
     apr.play_audio(x, sr)
     apr.play_audio(y, sr)
 
+def run_readme():
+    from aukit import __doc__, __version__
+    with open("README.md", "wt", encoding="utf8") as fout:
+        fout.write(__doc__)
 
 if __name__ == "__main__":
     print(__file__)
     # run_spectrogram()
-    run_world()
+    # run_world()
+    run_readme()
