@@ -3,7 +3,7 @@
 # author: kuangdd
 # date: 2019/11/30
 """
-RTVC的synthesizer的语音处理模块。
+griffinlim声码器，线性频谱转语音，梅尔频谱转语音，TensorFlow版本转语音。
 """
 import librosa
 import librosa.filters

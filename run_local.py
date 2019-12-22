@@ -16,6 +16,9 @@ import re
 import json
 import numpy as np
 import shutil
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 def run_spectrogram():
@@ -46,7 +49,6 @@ def run_spectrogram():
 
 
 def run_world():
-    from scipy.io import wavfile
     from aukit import audio_world as awd
     from aukit import audio_player as apr
     from aukit import audio_io as aio
@@ -55,6 +57,7 @@ def run_world():
     x, sr = aio.load_wav(inpath, with_sr=True)
     f0, sp, ap = awd.world_spectrogram(x, sr)
     y = awd.inv_world_spectrogram(f0, sp, ap, sr)
+
     apr.play_audio(x, sr)
     apr.play_audio(y, sr)
 

@@ -3,13 +3,12 @@
 # author: kuangdd
 # date: 2019/11/30
 """
-RTVC的vocoder的语音处理模块。
+语音频谱，语音转线性频谱，语音转梅尔频谱。
 """
+from scipy.signal import lfilter
 import math
 import numpy as np
 import librosa
-from scipy.signal import lfilter
-from tensorflow.contrib.training import HParams
 
 
 class Dict2Obj(dict):
