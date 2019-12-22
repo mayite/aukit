@@ -6,6 +6,7 @@
 world声码器。
 """
 import pyworld as pw
+import numpy as np
 
 
 def world_spectrogram_default(x, sr):
@@ -64,6 +65,50 @@ def inv_world_spectrogram(f0, sp, ap, sr, **kwargs):
     ap_dec = pw.decode_aperiodicity(ap, sr, fft_size=fft_size)
     y = pw.synthesize(f0, sp_dec, ap_dec, sr, frame_period=frame_period)
     return y
+
+
+def tune_pitch(f0, sp, ap, rate=1.):
+    """调音高"""
+    f0_out = f0 * rate
+    sp_out = fix_sp(sp, rate)
+    return f0_out, sp_out, ap
+
+
+def tune_robot(f0, sp, ap, rate=1.):
+    """调机器人音"""
+    m = np.percentile(f0[f0 > 0], 61.8)
+    f0_out = np.ones_like(f0) * m * rate
+    sp_out = fix_sp(sp, rate)
+    return f0_out, sp_out, ap
+
+
+def assign_pitch(f0, sp, ap, base=250):
+    """指定音高"""
+    m = np.percentile(f0[f0 > 0], 61.8)
+    rate = base / m
+    f0_out = f0 * rate
+    sp_out = fix_sp(sp, rate)
+    return f0_out, sp_out, ap
+
+
+def assign_robot(f0, sp, ap, base=250):
+    """指定音高的机器人音"""
+    m = np.percentile(f0[f0 > 0], 61.8)
+    rate = base / m
+    f0_out = np.ones_like(f0) * m * rate
+    sp_out = fix_sp(sp, rate)
+    return f0_out, sp_out, ap
+
+
+def fix_sp(sp, rate=1.):
+    """修调频谱包络"""
+    sp_len = sp.shape[0]
+    sp_dim = sp.shape[1]
+    sp_out = np.zeros_like(sp)
+    for f in range(sp_dim):
+        f2 = min(sp_len, int(f / rate))
+        sp_out[:, f] = sp[:, f2]
+    return sp_out
 
 
 if __name__ == "__main__":
