@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 from aukit import __doc__, __version__
 
 install_requires = ['webrtcvad', 'pydub', 'lws', 'scipy', 'numpy',
-                    'librosa', 'pyworld', 'tensorflow', 'sounddevice']
+                    'librosa', 'pyworld', 'tensorflow<=1.13.1', 'sounddevice']
 
 setup(
     name="aukit",
