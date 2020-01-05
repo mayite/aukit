@@ -4,10 +4,21 @@
 # date: 2019/12/15
 """
 语音处理工具箱。
+生成whl格式安装包：python setup.py bdist_wheel
+生成pypi格式安装包：python setup.py sdist
+
+上传pypi：python setup.py sdist upload
+注意：需要在home目录下建立.pypirc配置文件，文件内容格式：
+[distutils]
+index-servers=pypi
+
+[pypi]
+repository = https://upload.pypi.org/legacy/
+username: admin
+password: admin
 """
 
 from setuptools import setup, find_packages
-
 from aukit import __version__ as aukit_version
 
 
