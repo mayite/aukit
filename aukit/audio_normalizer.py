@@ -3,6 +3,7 @@
 # author: kuangdd
 # date: 2019/11/30
 """
+### audio_normalizer
 语音正则化，去除语音中音量低的部分，标准化音量。
 """
 from scipy.ndimage.morphology import binary_dilation

@@ -3,8 +3,8 @@ pydub
 lws
 scipy
 numpy
-pyaudio
-tensorflow<=1.13.1
 librosa
 pyworld
+tensorflow<=1.13.1
+pyaudio
 sounddevice

@@ -62,12 +62,25 @@ def run_world():
     apr.play_audio(y, sr)
 
 def run_readme():
-    from aukit import __doc__, __version__
+    from aukit import __doc__, version_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc
+    from aukit import normalizer_doc, player_doc, spectrogram_doc, tuner_doc
     with open("README.md", "wt", encoding="utf8") as fout:
-        fout.write(__doc__)
+        for doc in [__doc__, version_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc,
+                    normalizer_doc, player_doc, spectrogram_doc, tuner_doc]:
+            fout.write(doc)
+
+
+def run_tuner():
+    from aukit.audio_tuner import tune_speed, tune_pitch
+    inpath = r"E:\data\temp\01.wav"
+    bys = tune_speed(inpath, sr=16000, out_type=None)
+    print(bys)
+    wav = tune_pitch(bys, sr=16000, out_type=None)
+    print(wav)
 
 if __name__ == "__main__":
     print(__file__)
     # run_spectrogram()
     # run_world()
     run_readme()
+    # run_tuner()

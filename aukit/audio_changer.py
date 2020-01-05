@@ -3,10 +3,138 @@
 # author: kuangdd
 # date: 2019/12/22
 """
-变音。
+### audio_changer
+变声器，变高低音，变语速，变萝莉音，回声。
 """
 import numpy as np
 import librosa
+
+
+def change_pitch(wav, sr, rate):
+    """
+    调音高。
+    :param rate:-20~20,float，0:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    return librosa.effects.pitch_shift(wav, sr, n_steps=rate)
+
+
+def change_speed(wav, sr, rate):
+    """
+    调语速。
+    :param rate:0~5,float，0:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    return librosa.effects.time_stretch(wav, rate)
+
+
+def change_sample(wav, sr, rate):
+    """
+    调采样率，语速和音高同时改变。
+    :param rate:0~5,float，1:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    return librosa.resample(wav, sr, int(sr * rate))
+
+
+def change_reback(wav, sr, rate):
+    """
+    回声。
+    :param rate:1~10,int，1:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    frequencies, D = librosa.ifgram(wav, sr=sr)
+    D = pool(D, size=(1, rate))
+    D = repeat(D, rate)
+    return librosa.istft(D)
+
+
+def change_pitchspeed(wav, sr, rate):
+    """
+    音高和语速同时变化。
+    :param rate:0~10,float，1:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    frequencies, D = librosa.ifgram(wav, sr=sr)
+    n = int(D.shape[0] * rate)
+    if n <= D.shape[0]:
+        D = drop(D, D.shape[0] - n, mode="r")
+    else:
+        D = rewardshape(D, (n, D.shape[1]))
+    return librosa.istft(D)
+
+
+def change_attention(wav, sr, rate):
+    """
+    突出高音或低音段。
+    :param rate:-100~100,int，0:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    frequencies, D = librosa.ifgram(wav, sr=sr)
+    D = roll(D, rate)
+    return librosa.istft(D)
+
+
+def change_male(wav, sr, rate):
+    """
+    变男声。
+    :param rate:0~1025,int，0,1,1025:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    frequencies, D = librosa.ifgram(wav, sr=sr)
+    D = pool_step(D, rate)
+    return librosa.istft(D)
+
+
+def change_stretch(wav, sr, rate):
+    """
+    成倍拉伸延长。
+    :param rate:1~10,int，1:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    frequencies, D = librosa.ifgram(wav, sr=sr)
+    D = spread(D, rate)
+    return librosa.istft(D)
+
+
+def change_vague(wav, sr, rate):
+    """
+    模糊。
+    :param rate:1~10,int，1:原声
+    :param wav:
+    :param sr:
+    :return:
+    """
+    frequencies, D = librosa.ifgram(wav, sr=sr)
+    D = pool(D, (1, rate))
+    D = spread(D, (1, rate))
+    return librosa.istft(D)
+
+
+class CheckStep(object):
+    def __init__(self, step):
+        self.step = step
+        self.index = 0
+
+    def __call__(self, *args):
+        self.index += 1
+        return self.index % self.step != 0
 
 
 def spread(D, size=(3, 3)):
@@ -21,133 +149,6 @@ def spread(D, size=(3, 3)):
     elif isinstance(size, int):
         D = np.repeat(D, size, axis=1)
     return D
-
-
-def change_pitch(n, y, sr):
-    """
-    调音高。
-    :param n:-20~20,float，0:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    return librosa.effects.pitch_shift(y, sr, n_steps=n)
-
-
-def change_speed(n, y, sr):
-    """
-    调语速。
-    :param n:0~5,float，0:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    return librosa.effects.time_stretch(y, n)
-
-
-def change_sample(n, y, sr):
-    """
-    调采样率，语速和音高同时改变。
-    :param n:0~5,float，1:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    return librosa.resample(y, sr, int(sr * n))
-
-
-def change_reback(n, y, sr):
-    """
-    回声。
-    :param n:1~10,int，1:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    frequencies, D = librosa.ifgram(y, sr=sr)
-    D = pool(D, size=(1, n))
-    D = repeat(D, n)
-    return librosa.istft(D)
-
-
-def change_pitchspeed(n, y, sr):
-    """
-    音高和语速同时变化。
-    :param n:0~10,float，1:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    frequencies, D = librosa.ifgram(y, sr=sr)
-    n = int(D.shape[0] * n)
-    if n <= D.shape[0]:
-        D = drop(D, D.shape[0] - n, mode="r")
-    else:
-        D = rewardshape(D, (n, D.shape[1]))
-    return librosa.istft(D)
-
-
-def change_attention(n, y, sr):
-    """
-    突出高音或低音段。
-    :param n:-100~100,int，0:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    frequencies, D = librosa.ifgram(y, sr=sr)
-    D = roll(D, n)
-    return librosa.istft(D)
-
-
-def change_male(n, y, sr):
-    """
-    变男声。
-    :param n:0~1025,int，0,1,1025:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    frequencies, D = librosa.ifgram(y, sr=sr)
-    D = pool_step(D, n)
-    return librosa.istft(D)
-
-
-def change_stretch(n, y, sr):
-    """
-    成倍拉伸延长。
-    :param n:1~10,int，1:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    frequencies, D = librosa.ifgram(y, sr=sr)
-    D = spread(D, n)
-    return librosa.istft(D)
-
-
-def change_vague(n, y, sr):
-    """
-    模糊。
-    :param n:1~10,int，1:原声
-    :param y:
-    :param sr:
-    :return:
-    """
-    frequencies, D = librosa.ifgram(y, sr=sr)
-    D = pool(D, (1, n))
-    D = spread(D, (1, n))
-    return librosa.istft(D)
-
-
-class CheckStep(object):
-    def __init__(self, step):
-        self.step = step
-        self.index = 0
-
-    def __call__(self, *args):
-        self.index += 1
-        return self.index % self.step != 0
 
 
 def drop(D, n, mode="l"):

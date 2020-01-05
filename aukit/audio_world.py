@@ -3,7 +3,8 @@
 # author: kuangdd
 # date: 2019/12/15
 """
-world声码器。
+### audio_world
+world声码器，提取语音的基频、频谱包络和非周期信号，频谱转为语音。调音高，调机器人音。
 """
 import pyworld as pw
 import numpy as np

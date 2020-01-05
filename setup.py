@@ -8,15 +8,29 @@
 
 from setuptools import setup, find_packages
 
-from aukit import __doc__ as aukit_doc, __version__ as aukit_version
+from aukit import __version__ as aukit_version
 
+
+def create_readme():
+    from aukit import __doc__, version_doc, cli_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc
+    from aukit import normalizer_doc, player_doc, spectrogram_doc, tuner_doc
+    docs = []
+    with open("README.md", "wt", encoding="utf8") as fout:
+        for doc in [__doc__, version_doc, cli_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc,
+                    normalizer_doc, player_doc, spectrogram_doc, tuner_doc]:
+            fout.write(doc)
+            docs.append(doc)
+    return "".join(docs)
+
+
+aukit_doc = create_readme()
 install_requires = [w.strip() for w in open("requirements.txt", encoding="utf8") if w.strip()]
-
+print(install_requires)
 setup(
     name="aukit",
     version=aukit_version,
     author="kuangdd",
-    author_email="kqhyj@163.com",
+    author_email="kuangdd@foxmail.com",
     description="audio toolkit",
     long_description=aukit_doc,
     long_description_content_type="text/markdown",
@@ -38,7 +52,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pla = aukit.audio_player:play_audio_cmd'
+            'aup = aukit.audio_cli:play_audio_cli'
         ]
     }
 )

@@ -3,6 +3,7 @@
 # author: kuangdd
 # date: 2019/12/1
 """
+### audio_io
 语音保存、读取。
 """
 from scipy.io import wavfile
@@ -66,5 +67,18 @@ def anything2bytesio(src, sr=None):
     return out_io
 
 
+def anything2wav(src, sr=None):
+    if type(src) in {list, np.array, np.ndarray, np.matrix, np.asarray}:
+        return np.array(src)
+    else:
+        bysio = anything2bytesio(src, sr=sr)
+        return load_wav_wavfile(bysio, sr=sr)
+
+
 if __name__ == "__main__":
     print(__file__)
+    inpath = r"E:\data\temp\01.wav"
+    bys = anything2bytesio(inpath, sr=16000)
+    print(bys)
+    wav = anything2wav(bys, sr=16000)
+    print(wav)

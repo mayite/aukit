@@ -3,6 +3,7 @@
 # author: kuangdd
 # date: 2019/11/30
 """
+### audio_griffinlim
 griffinlim声码器，线性频谱转语音，梅尔频谱转语音，TensorFlow版本转语音。
 """
 import librosa
@@ -47,8 +48,8 @@ default_hparams = Dict2Obj(dict(
     signal_normalization=True,
     # Whether to normalize mel spectrograms to some predefined range (following below parameters)
     allow_clipping_in_normalization=True,  # True,  # Only relevant if mel_normalization = True
-    symmetric_mels=True,  # True,
-    max_abs_value=4.,
+    symmetric_mels=False,  # True,
+    max_abs_value=1.,  # 4.,
     normalize_for_wavenet=True,
     # whether to rescale to [0, 1] for wavenet. (better audio quality)
     clip_for_wavenet=True,
@@ -146,6 +147,22 @@ def mel_spectrogram(wav, hparams=None):
     if hparams.signal_normalization:
         return _normalize(S, hparams)
     return S
+
+
+def mel_spectrogram_feature(wav, hparams=None):
+    hparams = hparams or default_hparams
+    """
+    Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
+    Note: this not a log-mel spectrogram.
+    """
+    frames = librosa.feature.melspectrogram(
+        wav,
+        hparams.sample_rate,
+        n_fft=hparams.n_fft,
+        hop_length=hparams.hop_size,
+        n_mels=hparams.num_mels
+    )
+    return _amp_to_db(frames.astype(np.float32))
 
 
 def inv_linear_spectrogram(linear_spectrogram, hparams=None):
@@ -379,11 +396,6 @@ def _normalize(S, hparams=None):
         return hparams.max_abs_value * ((S - hparams.min_level_db) / (-hparams.min_level_db))
 
 
-def _normalize_tacotron(S, hparams=None):
-    hparams = hparams or default_hparams
-    return np.clip((S - hparams.min_level_db) / -hparams.min_level_db, 0, 1)
-
-
 def _denormalize(D, hparams=None):
     hparams = hparams or default_hparams
     if hparams.allow_clipping_in_normalization:
@@ -401,11 +413,6 @@ def _denormalize(D, hparams=None):
                 2 * hparams.max_abs_value)) + hparams.min_level_db)
     else:
         return ((D * -hparams.min_level_db / hparams.max_abs_value) + hparams.min_level_db)
-
-
-def _denormalize_tacotron(S, hparams=None):
-    hparams = hparams or default_hparams
-    return (np.clip(S, 0, 1) * -hparams.min_level_db) + hparams.min_level_db
 
 
 def _denormalize_tensorflow(S, hparams=None):

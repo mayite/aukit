@@ -3,7 +3,8 @@
 # author: kuangdd
 # date: 2019/11/23
 """
-语音降噪，用谱减法降噪。
+### audio_noise_remover
+语音降噪，降低环境噪声。
 todo list:
 1. 添加自定义噪声样本。
 2. 添加可设置降噪阈值等参数。

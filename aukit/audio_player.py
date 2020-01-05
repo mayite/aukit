@@ -3,12 +3,12 @@
 # author: kuangdd
 # date: 2019/11/23
 """
-播放音频信号。
+### audio_player
+语音播放，传入文件名播放，播放wave数据，播放bytes数据。
 """
 from pyaudio import PyAudio
 import sys
 import wave
-import numpy as np
 import sounddevice as sd
 import time
 import os
@@ -17,7 +17,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
 
-from .audio_io import load_wav, anything2bytesio
+from .audio_io import anything2bytesio, anything2wav
 
 
 def play_audio(src=None, sr=16000):
@@ -40,18 +40,8 @@ def play_audio(src=None, sr=16000):
     logger.info("play audio done, playing {:.2f} seconds.".format(t))
 
 
-def play_audio_cmd():
-    fpath = sys.argv[1]
-    sr = sys.argv[2]
-    play_audio(fpath, sr)
-
-
 def play_sound(src, sr=16000, **kwargs):
-    if type(src) not in {np.asarray, np.array, np.ndarray, list}:
-        bytesio = anything2bytesio(src, sr=sr)
-        data = load_wav(bytesio, sr=sr)
-    else:
-        data = np.array(src)
+    data = anything2wav(src, sr=sr)
     t0 = time.time()
     sd.play(data, sr, **kwargs)
     sd.wait()
