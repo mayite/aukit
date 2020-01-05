@@ -6,9 +6,7 @@
 播放音频信号。
 """
 from pyaudio import PyAudio
-from scipy.io import wavfile
 import sys
-import io
 import wave
 import numpy as np
 import sounddevice as sd
