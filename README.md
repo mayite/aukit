@@ -9,13 +9,13 @@ pip install aukit
 ```
 
 - 注意
-    * 如果安装过程中依赖报错，则单独另外安装依赖后，再安装aukit。
-    * 容易安装报错的依赖包：tensorflow,pyaudio,sounddevice。
-    * TensorFlow<=1.13.1
+    * 可能需另外安装的依赖包：tensorflow, pyaudio, sounddevice。
+    * tensorflow<=1.13.1
     * pyaudio暂不支持python37以上版本直接pip安装，需要下载whl文件安装，下载路径：https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
+    * sounddevice依赖pyaudio。
 
 ### 版本
-v1.3.1
+v1.3.2
 
 ### audio_cli
 命令行，播放音频。

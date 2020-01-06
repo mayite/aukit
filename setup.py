@@ -20,7 +20,16 @@ password: admin
 
 from setuptools import setup, find_packages
 from aukit import __version__ as aukit_version
+import os
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
+install_requires = ['webrtcvad', 'pydub', 'lws', 'scipy', 'numpy', 'librosa', 'pyworld']
+requires = ['tensorflow<=1.13.1', 'pyaudio', 'sounddevice']
+
+
+# [w.strip() for w in open("requirements.txt", encoding="utf8") if w.strip()]
 
 def create_readme():
     from aukit import __doc__, version_doc, cli_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc
@@ -34,9 +43,17 @@ def create_readme():
     return "".join(docs)
 
 
+def pip_install():
+    for pkg in install_requires + requires:
+        try:
+            os.system("pip install {}".format(pkg))
+        except Exception as e:
+            logger.info("pip install {} failed".format(pkg))
+
+
 aukit_doc = create_readme()
-install_requires = [w.strip() for w in open("requirements.txt", encoding="utf8") if w.strip()]
-print(install_requires)
+pip_install()
+
 setup(
     name="aukit",
     version=aukit_version,

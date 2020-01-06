@@ -6,10 +6,8 @@
 ### audio_player
 语音播放，传入文件名播放，播放wave数据，播放bytes数据。
 """
-from pyaudio import PyAudio
 import sys
 import wave
-import sounddevice as sd
 import time
 import os
 import logging
@@ -18,6 +16,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
 
 from .audio_io import anything2bytesio, anything2wav
+
+try:
+    from pyaudio import PyAudio
+    import sounddevice as sd
+except ImportError as e:
+    logger.info("ImportError: {}".format(e))
+
 
 
 def play_audio(src=None, sr=16000):

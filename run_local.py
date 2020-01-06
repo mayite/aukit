@@ -8,8 +8,8 @@ local
 from pathlib import Path
 from functools import partial
 from multiprocessing.pool import Pool
-from matplotlib import pyplot as plt
-from tqdm import tqdm
+# from matplotlib import pyplot as plt
+# from tqdm import tqdm
 import collections as clt
 import os
 import re
@@ -61,13 +61,17 @@ def run_world():
     apr.play_audio(x, sr)
     apr.play_audio(y, sr)
 
-def run_readme():
-    from aukit import __doc__, version_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc
+
+def create_readme():
+    from aukit import __doc__, version_doc, cli_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc
     from aukit import normalizer_doc, player_doc, spectrogram_doc, tuner_doc
+    docs = []
     with open("README.md", "wt", encoding="utf8") as fout:
-        for doc in [__doc__, version_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc,
+        for doc in [__doc__, version_doc, cli_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc,
                     normalizer_doc, player_doc, spectrogram_doc, tuner_doc]:
             fout.write(doc)
+            docs.append(doc)
+    return "".join(docs)
 
 
 def run_tuner():
@@ -78,9 +82,11 @@ def run_tuner():
     wav = tune_pitch(bys, sr=16000, out_type=None)
     print(wav)
 
+
 if __name__ == "__main__":
     print(__file__)
     # run_spectrogram()
     # run_world()
-    run_readme()
+    # create_readme()
     # run_tuner()
+    import aukit

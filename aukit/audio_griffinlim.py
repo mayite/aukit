@@ -9,9 +9,18 @@ griffinlim声码器，线性频谱转语音，梅尔频谱转语音，TensorFlow
 import librosa
 import librosa.filters
 import numpy as np
-import tensorflow as tf
 from scipy import signal
 from scipy.io import wavfile
+import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
+
+try:
+    import tensorflow as tf
+except ImportError as e:
+    logger.info("ImportError: {}".format(e))
 
 
 class Dict2Obj(dict):
