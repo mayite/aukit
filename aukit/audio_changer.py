@@ -9,8 +9,10 @@
 import numpy as np
 import librosa
 
+_sr = 16000
 
-def change_pitch(wav, sr, rate):
+
+def change_pitch(wav, sr=_sr, rate=0.):
     """
     调音高。
     :param rate:-20~20,float，0:原声
@@ -18,10 +20,10 @@ def change_pitch(wav, sr, rate):
     :param sr:
     :return:
     """
-    return librosa.effects.pitch_shift(wav, sr, n_steps=rate)
+    return librosa.effects.pitch_shift(wav, sr=sr, n_steps=rate)
 
 
-def change_speed(wav, sr, rate):
+def change_speed(wav, sr=_sr, rate=0.):
     """
     调语速。
     :param rate:0~5,float，0:原声
@@ -32,7 +34,7 @@ def change_speed(wav, sr, rate):
     return librosa.effects.time_stretch(wav, rate)
 
 
-def change_sample(wav, sr, rate):
+def change_sample(wav, sr=_sr, rate=1):
     """
     调采样率，语速和音高同时改变。
     :param rate:0~5,float，1:原声
@@ -40,10 +42,10 @@ def change_sample(wav, sr, rate):
     :param sr:
     :return:
     """
-    return librosa.resample(wav, sr, int(sr * rate))
+    return librosa.resample(wav, orig_sr=sr, target_sr=int(sr * rate))
 
 
-def change_reback(wav, sr, rate):
+def change_reback(wav, sr=_sr, rate=1):
     """
     回声。
     :param rate:1~10,int，1:原声
@@ -57,7 +59,7 @@ def change_reback(wav, sr, rate):
     return librosa.istft(D)
 
 
-def change_pitchspeed(wav, sr, rate):
+def change_pitchspeed(wav, sr=_sr, rate=1):
     """
     音高和语速同时变化。
     :param rate:0~10,float，1:原声
@@ -74,7 +76,7 @@ def change_pitchspeed(wav, sr, rate):
     return librosa.istft(D)
 
 
-def change_attention(wav, sr, rate):
+def change_attention(wav, sr=_sr, rate=0):
     """
     突出高音或低音段。
     :param rate:-100~100,int，0:原声
@@ -87,7 +89,7 @@ def change_attention(wav, sr, rate):
     return librosa.istft(D)
 
 
-def change_male(wav, sr, rate):
+def change_male(wav, sr=_sr, rate=0):
     """
     变男声。
     :param rate:0~1025,int，0,1,1025:原声
@@ -100,7 +102,7 @@ def change_male(wav, sr, rate):
     return librosa.istft(D)
 
 
-def change_stretch(wav, sr, rate):
+def change_stretch(wav, sr=_sr, rate=1):
     """
     成倍拉伸延长。
     :param rate:1~10,int，1:原声
@@ -113,7 +115,7 @@ def change_stretch(wav, sr, rate):
     return librosa.istft(D)
 
 
-def change_vague(wav, sr, rate):
+def change_vague(wav, sr=_sr, rate=1):
     """
     模糊。
     :param rate:1~10,int，1:原声

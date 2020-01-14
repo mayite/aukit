@@ -75,12 +75,17 @@ def create_readme():
 
 
 def run_tuner():
+    import aukit
     from aukit.audio_tuner import tune_speed, tune_pitch
     inpath = r"E:\data\temp\01.wav"
-    bys = tune_speed(inpath, sr=16000, out_type=None)
+    aukit.anything2bytes(inpath)
+    aukit.anything2wav(inpath)
+    aukit.anything2bytesio(inpath)
+    bys = tune_speed(inpath, sr=16000, rate=0.5, out_type=None)
     print(bys)
-    wav = tune_pitch(bys, sr=16000, out_type=None)
+    wav = tune_pitch(bys, sr=16000, rate=1, out_type=None)
     print(wav)
+    aukit.play_audio(wav)
 
 
 if __name__ == "__main__":
@@ -88,5 +93,5 @@ if __name__ == "__main__":
     # run_spectrogram()
     # run_world()
     # create_readme()
-    # run_tuner()
+    run_tuner()
     import aukit

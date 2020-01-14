@@ -13,9 +13,10 @@ pip install aukit
     * tensorflow<=1.13.1
     * pyaudio暂不支持python37以上版本直接pip安装，需要下载whl文件安装，下载路径：https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
     * sounddevice依赖pyaudio。
+    * aukit的默认音频采样率为16k。
 
 ### 版本
-v1.3.2
+v1.3.4
 
 ### audio_cli
 命令行，播放音频。

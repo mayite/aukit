@@ -12,8 +12,10 @@ import numpy as np
 import io
 from .audio_io import anything2bytesio, anything2wav
 
+_sr = 16000
 
-def tune_speed(src=None, sr=None, rate=1., out_type=np.ndarray):
+
+def tune_speed(src=None, sr=_sr, rate=1., out_type=np.ndarray):
     """
     变语速
     rate = win / (bar - cro)
@@ -44,7 +46,7 @@ def tune_speed(src=None, sr=None, rate=1., out_type=np.ndarray):
         return anything2bytesio(io_out.getvalue(), sr=sr)
 
 
-def tune_pitch(src=None, sr=None, rate=1., out_type=np.ndarray):
+def tune_pitch(src=None, sr=_sr, rate=1., out_type=np.ndarray):
     """
     变音调
     :param io_in:

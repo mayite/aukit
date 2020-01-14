@@ -23,9 +23,10 @@ try:
 except ImportError as e:
     logger.info("ImportError: {}".format(e))
 
+_sr = 16000
 
 
-def play_audio(src=None, sr=16000):
+def play_audio(src=None, sr=_sr):
     chunk = 1024  # 2014kb
     bytesio = anything2bytesio(src, sr=sr)
     wf = wave.open(bytesio, "rb")
@@ -45,7 +46,7 @@ def play_audio(src=None, sr=16000):
     logger.info("play audio done, playing {:.2f} seconds.".format(t))
 
 
-def play_sound(src, sr=16000, **kwargs):
+def play_sound(src, sr=_sr, **kwargs):
     data = anything2wav(src, sr=sr)
     t0 = time.time()
     sd.play(data, sr, **kwargs)

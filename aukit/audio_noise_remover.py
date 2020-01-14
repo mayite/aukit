@@ -13,8 +13,10 @@ from scipy.io import wavfile
 import numpy as np
 import ctypes as ct
 
+_sr = 16000
 
-def remove_noise(x: np.array, sr=16000, **kwargs):
+
+def remove_noise(x: np.array, sr=_sr, **kwargs):
     noise_span = kwargs.get("noise_span", (0, 100))
     # 计算参数
     unit_ = 20  # 每帧时长，单位ms

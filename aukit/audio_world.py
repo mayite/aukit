@@ -9,8 +9,10 @@ world声码器，提取语音的基频、频谱包络和非周期信号，频谱
 import pyworld as pw
 import numpy as np
 
+_sr = 16000
 
-def world_spectrogram_default(x, sr):
+
+def world_spectrogram_default(x, sr=_sr):
     """默认参数的world声码器语音转为特征频谱。"""
     # f0 : ndarray
     #     F0 contour. 基频等高线
@@ -22,13 +24,13 @@ def world_spectrogram_default(x, sr):
     return f0, sp, ap
 
 
-def inv_world_spectrogram_default(f0, sp, ap, sr):
+def inv_world_spectrogram_default(f0, sp, ap, sr=_sr):
     """默认参数的world声码器特征频谱转为语音。"""
     y = pw.synthesize(f0, sp, ap, sr)
     return y
 
 
-def world_spectrogram(x, sr, dim_num=32, **kwargs):
+def world_spectrogram(x, sr=_sr, dim_num=32, **kwargs):
     """world声码器语音转为频谱。"""
     # 分布提取参数
     frame_period = kwargs.get("frame_period", pw.default_frame_period)
@@ -57,7 +59,7 @@ def world_spectrogram(x, sr, dim_num=32, **kwargs):
     return f0, sp_enc, ap_enc
 
 
-def inv_world_spectrogram(f0, sp, ap, sr, **kwargs):
+def inv_world_spectrogram(f0, sp, ap, sr=_sr, **kwargs):
     """world声码器频谱转为语音。"""
     frame_period = kwargs.get("frame_period", pw.default_frame_period)
     f0_floor = kwargs.get("f0_floor", pw.default_f0_floor)
