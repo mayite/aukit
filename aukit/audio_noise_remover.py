@@ -5,19 +5,26 @@
 """
 ### audio_noise_remover
 语音降噪，降低环境噪声。
-todo list:
-1. 添加自定义噪声样本。
-2. 添加可设置降噪阈值等参数。
 """
-from scipy.io import wavfile
 import numpy as np
 import ctypes as ct
+from .audio_io import load_wav, save_wav
+from .audio_io import _sr
 
-_sr = 16000
 
-
-def remove_noise(x: np.array, sr=_sr, **kwargs):
+def remove_noise(wav: np.array, sr=_sr, **kwargs):
+    """
+    谱减法去除背景噪声。
+    :param wav: 语音信号
+    :param sr: 采样率
+    :param kwargs:
+    :return: np.ndarray
+    """
+    x = wav
     noise_span = kwargs.get("noise_span", (0, 100))
+    noise_wav = kwargs.get("noise_wav", None)
+    threshold = kwargs.get("threshold", 3)
+    beta = kwargs.get("beta", 0.002)
     # 计算参数
     unit_ = 20  # 每帧时长，单位ms
     len_ = unit_ * sr // 1000  # 样本中帧的大小
@@ -25,9 +32,9 @@ def remove_noise(x: np.array, sr=_sr, **kwargs):
     len1 = len_ * PERC // 100  # 重叠窗口
     len2 = len_ - len1  # 非重叠窗口
     # 设置默认参数
-    Thres = 3
+    Thres = threshold
     Expnt = 2.0
-    beta = 0.002
+    beta = beta
     G = 0.9
     # 初始化汉明窗
     win = np.hamming(len_)
@@ -37,13 +44,22 @@ def remove_noise(x: np.array, sr=_sr, **kwargs):
     # Noise magnitude calculations - assuming that the first 5 frames is noise/silence
     nFFT = 2 * 2 ** (nextpow2(len_))
     noise_mean = np.zeros(nFFT)
-
-    sidx = noise_span[0] // unit_
-    eidx = noise_span[1] // unit_
-    for k in range(sidx, eidx):
-        noise_mean = noise_mean + abs(np.fft.fft(win * x[k * len_:(k + 1) * len_], nFFT))
-    noise_mu = noise_mean / (eidx - sidx)
-
+    if noise_wav is None:
+        sidx = noise_span[0] // unit_
+        eidx = noise_span[1] // unit_
+        for k in range(sidx, eidx):
+            noise_mean = noise_mean + abs(np.fft.fft(win * x[k * len_:(k + 1) * len_], nFFT))
+        noise_mu = noise_mean / (eidx - sidx)
+    else:
+        if "noise_span" in kwargs:
+            sidx = noise_span[0] // unit_
+            eidx = noise_span[1] // unit_
+        else:
+            sidx = 0
+            eidx = len(noise_wav) // unit_
+        for k in range(sidx, eidx):
+            noise_mean = noise_mean + abs(np.fft.fft(win * x[k * len_:(k + 1) * len_], nFFT))
+        noise_mu = noise_mean / (eidx - sidx)
     # --- allocate memory and initialize various variables
     k = 1
     img = 1j
@@ -100,11 +116,9 @@ def remove_noise(x: np.array, sr=_sr, **kwargs):
 
 def remove_noise_os(inpath, outpath, **kwargs):
     try:
-        sr, wav = wavfile.read(inpath)
-        wav = wav / max(abs(wav))
-        out = remove_noise(wav, sr)
-        out = ((out * 32767) / max(0.01, np.max(np.abs(out)))).astype(np.int16)
-        wavfile.write(outpath, sr, out)
+        wav, sr = load_wav(inpath, with_sr=True)
+        out = remove_noise(wav, sr, **kwargs)
+        save_wav(out, outpath, sr)
     except Exception as e:
         print('Error path:', inpath)
         print('Error info:', e)

@@ -33,11 +33,11 @@ requires = ['tensorflow<=1.13.1', 'pyaudio', 'sounddevice']
 
 def create_readme():
     from aukit import __doc__, version_doc, cli_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc
-    from aukit import normalizer_doc, player_doc, spectrogram_doc, tuner_doc
+    from aukit import normalizer_doc, player_doc, spectrogram_doc, tuner_doc, world_doc
     docs = []
     with open("README.md", "wt", encoding="utf8") as fout:
         for doc in [__doc__, version_doc, cli_doc, changer_doc, editor_doc, griffinlim_doc, io_doc, noise_remover_doc,
-                    normalizer_doc, player_doc, spectrogram_doc, tuner_doc]:
+                    normalizer_doc, player_doc, spectrogram_doc, tuner_doc, world_doc]:
             fout.write(doc)
             docs.append(doc)
     return "".join(docs)
@@ -80,7 +80,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'aup = aukit.audio_cli:play_audio_cli'
+            'aup = aukit.audio_cli:play_audio_cli',
+            'aur = aukit.audio_cli:play_audio_cli'
         ]
     }
 )

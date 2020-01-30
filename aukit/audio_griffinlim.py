@@ -4,7 +4,7 @@
 # date: 2019/11/30
 """
 ### audio_griffinlim
-griffinlim声码器，线性频谱转语音，梅尔频谱转语音，TensorFlow版本转语音。
+griffinlim声码器，线性频谱转语音，梅尔频谱转语音，TensorFlow版本转语音，梅尔频谱和线性频谱相互转换。
 """
 import librosa
 import librosa.filters
@@ -159,11 +159,11 @@ def mel_spectrogram(wav, hparams=None):
 
 
 def mel_spectrogram_feature(wav, hparams=None):
-    hparams = hparams or default_hparams
     """
     Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
     Note: this not a log-mel spectrogram.
     """
+    hparams = hparams or default_hparams
     frames = librosa.feature.melspectrogram(
         wav,
         hparams.sample_rate,
@@ -174,9 +174,27 @@ def mel_spectrogram_feature(wav, hparams=None):
     return _amp_to_db(frames.astype(np.float32))
 
 
-def inv_linear_spectrogram(linear_spectrogram, hparams=None):
+def linear2mel_spectrogram(linear_spectrogram, hparams=None):
+    """Converts linear spectrogram to mel spectrogram"""
     hparams = hparams or default_hparams
+
+    if hparams.signal_normalization:
+        D = _denormalize(linear_spectrogram, hparams)
+    else:
+        D = linear_spectrogram
+
+    D = _db_to_amp(D + hparams.ref_level_db)  # Convert back to linear
+
+    S = _amp_to_db(_linear_to_mel(np.abs(D), hparams), hparams) - hparams.ref_level_db
+
+    if hparams.signal_normalization:
+        return _normalize(S, hparams)
+    return S
+
+
+def inv_linear_spectrogram(linear_spectrogram, hparams=None):
     """Converts linear spectrogram to waveform using librosa"""
+    hparams = hparams or default_hparams
     if hparams.signal_normalization:
         D = _denormalize(linear_spectrogram, hparams)
     else:
@@ -218,9 +236,26 @@ def inv_linear_spectrogram_tf(linear_spectrogram, hparams=None):
         return sess.run(wav_tf)
 
 
-def inv_mel_spectrogram(mel_spectrogram, hparams=None):
+def mel2linear_spectrogram(mel_spectrogram, hparams=None):
+    """Converts mel spectrogram to linear spectrogram"""
     hparams = hparams or default_hparams
+
+    if hparams.signal_normalization:
+        D = _denormalize(mel_spectrogram, hparams)
+    else:
+        D = mel_spectrogram
+
+    D = _mel_to_linear(_db_to_amp(D + hparams.ref_level_db), hparams)  # Convert back to linear
+    S = _amp_to_db(np.abs(D), hparams) - hparams.ref_level_db
+
+    if hparams.signal_normalization:
+        return _normalize(S, hparams)
+    return S
+
+
+def inv_mel_spectrogram(mel_spectrogram, hparams=None):
     """Converts mel spectrogram to waveform using librosa"""
+    hparams = hparams or default_hparams
     if hparams.signal_normalization:
         D = _denormalize(mel_spectrogram, hparams)
     else:
@@ -255,10 +290,10 @@ def find_endpoint(wav, threshold_db=-40, min_silence_sec=0.8, hparams=None):
 
 
 def _griffin_lim(S, hparams=None):
-    hparams = hparams or default_hparams
     """librosa implementation of Griffin-Lim
     Based on https://github.com/librosa/librosa/issues/434
     """
+    hparams = hparams or default_hparams
     angles = np.exp(2j * np.pi * np.random.rand(*S.shape))
     S_complex = np.abs(S).astype(np.complex)
     y = _istft(S_complex * angles, hparams)

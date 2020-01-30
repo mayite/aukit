@@ -11,8 +11,7 @@ from scipy.io import wavfile
 import numpy as np
 import io
 from .audio_io import anything2bytesio, anything2wav
-
-_sr = 16000
+from .audio_io import _sr
 
 
 def tune_speed(src=None, sr=_sr, rate=1., out_type=np.ndarray):

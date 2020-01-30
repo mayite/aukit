@@ -4,7 +4,7 @@
 # date: 2019/12/1
 """
 ### audio_io
-语音保存、读取。
+语音IO，语音保存、读取，语音格式转换。
 """
 from scipy.io import wavfile
 from pathlib import Path
@@ -16,11 +16,22 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
-
 _sr = 16000
 
-def load_wav(path, sr=_sr, with_sr=False):
-    return load_wav_librosa(path, sr=sr, with_sr=with_sr)
+
+def load_wav(path, sr=None, with_sr=False):
+    """
+    导入语音信号。
+    :param path: 文件路径。
+    :param sr: 采样率，None: 自动识别采样率。
+    :param with_sr: 是否返回采样率。
+    :return: np.ndarray
+    """
+    if sr is not None:
+        sr = sr or _sr
+        return load_wav_librosa(path, sr=sr, with_sr=with_sr)
+    else:
+        return load_wav_wavfile(path, sr=sr, with_sr=with_sr)
 
 
 def save_wav(wav, path, sr=None):
@@ -32,7 +43,7 @@ def load_wav_librosa(path, sr=_sr, with_sr=False):
     return (wav, sr) if with_sr else wav
 
 
-def load_wav_wavfile(path, sr=_sr, with_sr=False):
+def load_wav_wavfile(path, sr=None, with_sr=False):
     sr, wav = wavfile.read(path)
     wav = wav / np.max(np.abs(wav))
     return (wav, sr) if with_sr else wav

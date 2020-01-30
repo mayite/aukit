@@ -8,7 +8,7 @@ local
 from pathlib import Path
 from functools import partial
 from multiprocessing.pool import Pool
-# from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 # from tqdm import tqdm
 import collections as clt
 import os
@@ -30,22 +30,27 @@ def run_spectrogram():
     wav, sr = aio.load_wav(inpath, with_sr=True)
     print(wav.shape, sr)
     mel_gf = agf.mel_spectrogram(wav)
+    linear_gf = agf.linear_spectrogram(wav)
+    mel_lin = agf.linear2mel_spectrogram(linear_gf)
+    linear_mel = agf.mel2linear_spectrogram(mel_gf)
+    wav_2 = agf.inv_linear_spectrogram(linear_mel)
+
     mel_sp = asp.mel_spectrogram(wav)
     mel_fea = asp.mel_spectrogram_feature(wav)
 
-    plt.figure()
-    plt.subplot("311")
-    plt.pcolor(mel_gf)
-    plt.subplot("312")
-    plt.pcolor(mel_sp)
-    plt.subplot("313")
-    plt.pcolor(mel_fea)
-    plt.show()
+    # plt.figure()
+    # plt.subplot("311")
+    # plt.pcolor(linear)
+    # plt.subplot("312")
+    # plt.pcolor(linear2)
+    # plt.subplot("313")
+    # plt.pcolor(mel_fea)
+    # plt.show()
 
     wav_mg = agf.inv_mel_spectrogram(mel_gf)
     wav_ms = agf.inv_mel_spectrogram(mel_sp)
     wav_mf = agf.inv_mel_spectrogram(mel_fea)
-    play_audio(wav_mg, sr)
+    play_audio(wav_ms, sr)
 
 
 def run_world():
@@ -88,10 +93,19 @@ def run_tuner():
     aukit.play_audio(wav)
 
 
+def run_noise_remover():
+    import aukit
+    inpath = r"E:\data\temp\01.wav"
+    wav = aukit.load_wav(inpath)
+    out = aukit.remove_noise(wav)
+    aukit.play_audio(out)
+
+
 if __name__ == "__main__":
     print(__file__)
     # run_spectrogram()
     # run_world()
     # create_readme()
-    run_tuner()
+    # run_tuner()
+    run_noise_remover()
     import aukit

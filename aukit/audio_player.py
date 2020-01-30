@@ -12,18 +12,18 @@ import time
 import os
 import logging
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
 
 from .audio_io import anything2bytesio, anything2wav
+from .audio_io import _sr
 
 try:
     from pyaudio import PyAudio
     import sounddevice as sd
 except ImportError as e:
     logger.info("ImportError: {}".format(e))
-
-_sr = 16000
 
 
 def play_audio(src=None, sr=_sr):

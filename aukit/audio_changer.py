@@ -9,7 +9,7 @@
 import numpy as np
 import librosa
 
-_sr = 16000
+from .audio_io import _sr
 
 
 def change_pitch(wav, sr=_sr, rate=0.):

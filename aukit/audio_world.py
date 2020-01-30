@@ -8,8 +8,7 @@ world声码器，提取语音的基频、频谱包络和非周期信号，频谱
 """
 import pyworld as pw
 import numpy as np
-
-_sr = 16000
+from .audio_io import _sr
 
 
 def world_spectrogram_default(x, sr=_sr):
