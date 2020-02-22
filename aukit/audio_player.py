@@ -26,9 +26,9 @@ except ImportError as e:
     logger.info("ImportError: {}".format(e))
 
 
-def play_audio(src=None, sr=_sr):
+def play_audio(src=None, sr=_sr, volume=1.):
     chunk = 1024  # 2014kb
-    bytesio = anything2bytesio(src, sr=sr)
+    bytesio = anything2bytesio(src, sr=sr, volume=volume)
     wf = wave.open(bytesio, "rb")
     p = PyAudio()
     stream = p.open(format=p.get_format_from_width(wf.getsampwidth()), channels=wf.getnchannels(),

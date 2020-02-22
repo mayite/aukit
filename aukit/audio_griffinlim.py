@@ -46,7 +46,7 @@ default_hparams = Dict2Obj(dict(
     silence_threshold=2,  # silence threshold used for sound trimming for wavenet preprocessing
 
     # Mel spectrogram
-    n_fft=2048,  # 800,  num_freq=1025, # Extra window size is filled with 0 paddings to match this parameter
+    n_fft=800,  # 800,  num_freq=1025, # Extra window size is filled with 0 paddings to match this parameter
     hop_size=200,  # frame_shift_ms=12.5, For 16000Hz, 200 = 12.5 ms (0.0125 * sample_rate)
     win_size=800,  # frame_length_ms=50, For 16000Hz, 800 = 50 ms (If None, win_size = n_fft) (0.05 * sample_rate)
     sample_rate=16000,  # 16000Hz (corresponding to librispeech) (sox --i <filename>)
@@ -57,8 +57,8 @@ default_hparams = Dict2Obj(dict(
     signal_normalization=True,
     # Whether to normalize mel spectrograms to some predefined range (following below parameters)
     allow_clipping_in_normalization=True,  # True,  # Only relevant if mel_normalization = True
-    symmetric_mels=False,  # True,
-    max_abs_value=1.,  # 4.,
+    symmetric_mels=True,  # True,
+    max_abs_value=4.,  # 4.,
     normalize_for_wavenet=True,
     # whether to rescale to [0, 1] for wavenet. (better audio quality)
     clip_for_wavenet=True,
@@ -72,6 +72,7 @@ default_hparams = Dict2Obj(dict(
     # Set this to 55 if your speaker is male! if female, 95 should help taking off noise. (To
     # test depending on dataset. Pitch info: male~[65, 260], female~[100, 525])
     fmax=7600,  # To be increased/reduced depending on data.
+    center=True,
 
     # Griffin Lim
     power=1.5,
@@ -325,7 +326,8 @@ def _stft(y, hparams=None):
     if hparams.use_lws:
         return _lws_processor(hparams).stft(y).T
     else:
-        return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=get_hop_size(hparams), win_length=hparams.win_size)
+        return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=get_hop_size(hparams), win_length=hparams.win_size,
+                            center=hparams.center)
 
 
 def _stft_tensorflow(signals, hparams=None):
@@ -336,7 +338,7 @@ def _stft_tensorflow(signals, hparams=None):
 
 def _istft(y, hparams=None):
     hparams = hparams or default_hparams
-    return librosa.istft(y, hop_length=get_hop_size(hparams), win_length=hparams.win_size)
+    return librosa.istft(y, hop_length=get_hop_size(hparams), win_length=hparams.win_size, center=hparams.center)
 
 
 def _istft_tensorflow(stfts, hparams=None):
@@ -423,45 +425,41 @@ def _db_to_amp_tensorflow(x):
 
 def _normalize(S, hparams=None):
     hparams = hparams or default_hparams
+    ma = hparams.max_abs_value
+    mi = hparams.min_level_db
     if hparams.allow_clipping_in_normalization:
         if hparams.symmetric_mels:
-            return np.clip((2 * hparams.max_abs_value) * (
-                    (S - hparams.min_level_db) / (-hparams.min_level_db)) - hparams.max_abs_value,
-                           -hparams.max_abs_value, hparams.max_abs_value)
+            return np.clip((2 * ma) * ((S - mi) / (-mi)) - ma, -ma, ma)
         else:
-            return np.clip(hparams.max_abs_value * ((S - hparams.min_level_db) / (-hparams.min_level_db)), 0,
-                           hparams.max_abs_value)
-
-    assert S.max() <= 0 and S.min() - hparams.min_level_db >= 0
-    if hparams.symmetric_mels:
-        return (2 * hparams.max_abs_value) * (
-                (S - hparams.min_level_db) / (-hparams.min_level_db)) - hparams.max_abs_value
+            return np.clip(ma * ((S - mi) / (-mi)), 0, ma)
     else:
-        return hparams.max_abs_value * ((S - hparams.min_level_db) / (-hparams.min_level_db))
+        assert S.max() <= 0 and S.min() - mi >= 0
+        if hparams.symmetric_mels:
+            return (2 * ma) * ((S - mi) / (-mi)) - ma
+        else:
+            return ma * ((S - mi) / (-mi))
 
 
 def _denormalize(D, hparams=None):
     hparams = hparams or default_hparams
+    ma = hparams.max_abs_value
+    mi = hparams.min_level_db
     if hparams.allow_clipping_in_normalization:
         if hparams.symmetric_mels:
-            return (((np.clip(D, -hparams.max_abs_value,
-                              hparams.max_abs_value) + hparams.max_abs_value) * -hparams.min_level_db / (
-                             2 * hparams.max_abs_value))
-                    + hparams.min_level_db)
+            return ((np.clip(D, -ma, ma) + ma) * -mi / (2 * ma)) + mi
         else:
-            return ((np.clip(D, 0,
-                             hparams.max_abs_value) * -hparams.min_level_db / hparams.max_abs_value) + hparams.min_level_db)
-
-    if hparams.symmetric_mels:
-        return (((D + hparams.max_abs_value) * -hparams.min_level_db / (
-                2 * hparams.max_abs_value)) + hparams.min_level_db)
+            return (np.clip(D, 0, ma) * -mi / ma) + mi
     else:
-        return ((D * -hparams.min_level_db / hparams.max_abs_value) + hparams.min_level_db)
+        if hparams.symmetric_mels:
+            return ((D + ma) * -mi / (2 * ma)) + mi
+        else:
+            return (D * -mi / ma) + mi
 
 
 def _denormalize_tensorflow(S, hparams=None):
     hparams = hparams or default_hparams
-    return (tf.clip_by_value(S, 0, 1) * -hparams.min_level_db) + hparams.min_level_db
+    mi = hparams.min_level_db
+    return (tf.clip_by_value(S, 0, 1) * -mi) + mi
 
 
 if __name__ == "__main__":

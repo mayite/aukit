@@ -6,12 +6,18 @@
 ### audio_world
 world声码器，提取语音的基频、频谱包络和非周期信号，频谱转为语音。调音高，调机器人音。
 """
+import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
+
 import pyworld as pw
 import numpy as np
 from .audio_io import _sr
 
 
-def world_spectrogram_default(x, sr=_sr):
+def world_spectrogram_default(wav, sr=_sr):
     """默认参数的world声码器语音转为特征频谱。"""
     # f0 : ndarray
     #     F0 contour. 基频等高线
@@ -19,7 +25,7 @@ def world_spectrogram_default(x, sr=_sr):
     #     Spectral envelope. 频谱包络
     # ap : ndarray
     #     Aperiodicity. 非周期性
-    f0, sp, ap = pw.wav2world(x, sr)  # use default options
+    f0, sp, ap = pw.wav2world(wav.astype(np.double), sr)  # use default options
     return f0, sp, ap
 
 
@@ -29,7 +35,7 @@ def inv_world_spectrogram_default(f0, sp, ap, sr=_sr):
     return y
 
 
-def world_spectrogram(x, sr=_sr, dim_num=32, **kwargs):
+def world_spectrogram(wav, sr=_sr, dim_num=32, **kwargs):
     """world声码器语音转为频谱。"""
     # 分布提取参数
     frame_period = kwargs.get("frame_period", pw.default_frame_period)
@@ -38,6 +44,7 @@ def world_spectrogram(x, sr=_sr, dim_num=32, **kwargs):
     fft_size = kwargs.get("fft_size", pw.get_cheaptrick_fft_size(sr, f0_floor))
     ap_threshold = kwargs.get("ap_threshold", 0.85)
     f0_extractor = kwargs.get("f0_extractor", "dio")
+    x = wav.astype(np.double)
     if f0_extractor == "dio":
         # 使用DIO算法计算音频的基频F0
         f0, t = pw.dio(x, sr, f0_floor=f0_floor, f0_ceil=f0_ceil)
@@ -66,6 +73,33 @@ def inv_world_spectrogram(f0, sp, ap, sr=_sr, **kwargs):
     sp_dec = pw.decode_spectral_envelope(sp, sr, fft_size=fft_size)
     ap_dec = pw.decode_aperiodicity(ap, sr, fft_size=fft_size)
     y = pw.synthesize(f0, sp_dec, ap_dec, sr, frame_period=frame_period)
+    return y
+
+
+def change_voice(wav, sr=_sr, mode="tune_pitch", alpha=1., fix=True):
+    """
+    变声。
+    :param x:
+    :param sr:
+    :param mode:
+    :param alpha:
+    :param fix:
+    :return:
+    """
+    x = wav.astype(np.double)
+    s = world_spectrogram_default(x, sr=sr)
+    if mode == "tune_pitch":
+        s = tune_pitch(*s, rate=alpha, fix=fix)
+    elif mode == "tune_robot":
+        s = tune_robot(*s, rate=alpha, fix=fix)
+    elif mode == "assign_pitch":
+        s = assign_pitch(*s, base=alpha, fix=fix)
+    elif mode == "assign_robot":
+        s = assign_robot(*s, base=alpha, fix=fix)
+    else:
+        logger.info("ModeError: mode={}".format(mode))
+        raise TypeError
+    y = inv_world_spectrogram_default(*s, sr=sr)
     return y
 
 

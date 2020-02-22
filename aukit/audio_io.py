@@ -60,14 +60,14 @@ def save_wav_wavfile(wav, path, sr=_sr, volume=1.):
 
 
 def anything2bytesio(src, sr=_sr, volume=1.):
-    if type(src) in {list, np.array, np.ndarray, np.matrix, np.asarray}:
+    if isinstance(src, (str, Path)):
+        src = load_wav(src, sr=sr)
+    if isinstance(src, (list, np.ndarray, np.matrix)):
         out_io = io.BytesIO()
         save_wav_wavfile(src, out_io, sr=sr, volume=volume)
-    elif type(src) in {bytes}:
+    elif isinstance(src, bytes):
         out_io = io.BytesIO(src)
-    elif type(src) in {str, Path}:
-        out_io = io.BytesIO(open(src, "rb").read())
-    elif type(src) in {io.BytesIO}:
+    elif isinstance(src, io.BytesIO):
         out_io = src
     else:
         raise TypeError
@@ -75,7 +75,7 @@ def anything2bytesio(src, sr=_sr, volume=1.):
 
 
 def anything2wav(src, sr=_sr, volume=1.):
-    if type(src) in {list, np.array, np.ndarray, np.matrix, np.asarray}:
+    if isinstance(src, (list, np.ndarray, np.matrix)):
         return np.array(src)
     else:
         bysio = anything2bytesio(src, sr=sr, volume=volume)
@@ -83,7 +83,7 @@ def anything2wav(src, sr=_sr, volume=1.):
 
 
 def anything2bytes(src, sr=_sr, volume=1.):
-    if type(src) in {bytes}:
+    if isinstance(src, bytes):
         return src
     else:
         bysio = anything2bytesio(src, sr=sr, volume=volume)

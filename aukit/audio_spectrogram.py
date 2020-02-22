@@ -31,12 +31,18 @@ default_hparams = Dict2Obj(dict(
     num_mels=80,  # Number of mel-spectrogram channels and local conditioning dimensionality
 
     # Mel spectrogram
-    n_fft=2048,  # 800,  # Extra window size is filled with 0 paddings to match this parameter
+    n_fft=800,  # 800,  # Extra window size is filled with 0 paddings to match this parameter
     hop_size=200,  # For 16000Hz, 200 = 12.5 ms (0.0125 * sample_rate)
     win_size=800,  # For 16000Hz, 800 = 50 ms (If None, win_size = n_fft) (0.05 * sample_rate)
     sample_rate=16000,  # 16000Hz (corresponding to librispeech) (sox --i <filename>)
     preemphasize=False,  # whether to apply filter
     preemphasis=0.97,  # filter coefficient.
+    center=True,
+
+    # Whether to normalize mel spectrograms to some predefined range (following below parameters)
+    allow_clipping_in_normalization=True,  # True,  # Only relevant if mel_normalization = True
+    symmetric_mels=True,  # True,
+    max_abs_value=4.,  # 4.,
 
     # Limits
     min_level_db=-100,
@@ -109,12 +115,35 @@ def build_mel_basis(hparams=None):
 
 def normalize(S, hparams=None):
     hparams = hparams or default_hparams
-    return np.clip((S - hparams.min_level_db) / -hparams.min_level_db, 0, 1)
+    ma = hparams.max_abs_value
+    mi = hparams.min_level_db
+    if hparams.allow_clipping_in_normalization:
+        if hparams.symmetric_mels:
+            return np.clip((2 * ma) * ((S - mi) / (-mi)) - ma, -ma, ma)
+        else:
+            return np.clip(ma * ((S - mi) / (-mi)), 0, ma)
+    else:
+        assert S.max() <= 0 and S.min() - mi >= 0
+        if hparams.symmetric_mels:
+            return (2 * ma) * ((S - mi) / (-mi)) - ma
+        else:
+            return ma * ((S - mi) / (-mi))
 
 
-def denormalize(S, hparams=None):
+def denormalize(D, hparams=None):
     hparams = hparams or default_hparams
-    return (np.clip(S, 0, 1) * -hparams.min_level_db) + hparams.min_level_db
+    ma = hparams.max_abs_value
+    mi = hparams.min_level_db
+    if hparams.allow_clipping_in_normalization:
+        if hparams.symmetric_mels:
+            return ((np.clip(D, -ma, ma) + ma) * -mi / (2 * ma)) + mi
+        else:
+            return (np.clip(D, 0, ma) * -mi / ma) + mi
+    else:
+        if hparams.symmetric_mels:
+            return ((D + ma) * -mi / (2 * ma)) + mi
+        else:
+            return (D * -mi / ma) + mi
 
 
 def amp_to_db(x):
@@ -157,7 +186,8 @@ def mel_spectrogram_feature(wav, hparams=None):
 
 def stft(y, hparams=None):
     hparams = hparams or default_hparams
-    return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=hparams.hop_size, win_length=hparams.win_size)
+    return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=hparams.hop_size, win_length=hparams.win_size,
+                        center=hparams.center)
 
 
 def pre_emphasis(x, hparams=None):

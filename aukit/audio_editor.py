@@ -2,10 +2,14 @@
 # date: 
 """
 ### audio_editor
-语音编辑，切分音频，去除语音中的较长静音，去除语音首尾静音。
+语音编辑，切分音频，去除语音中的较长静音，去除语音首尾静音，设置采样率，设置通道数。
 """
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
+
+set_channels = AudioSegment.set_channels
+set_sample_rate = AudioSegment.set_frame_rate
+set_set_sample_width = AudioSegment.set_sample_width
 
 
 def strip_audio(data: AudioSegment, keep_silence_len=200, min_silence_len=200, silence_thresh=-32, **kwargs):
