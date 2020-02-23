@@ -12,7 +12,6 @@ import time
 import os
 import logging
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
 
@@ -21,7 +20,6 @@ from .audio_io import _sr
 
 try:
     from pyaudio import PyAudio
-    import sounddevice as sd
 except ImportError as e:
     logger.info("ImportError: {}".format(e))
 
@@ -47,6 +45,7 @@ def play_audio(src=None, sr=_sr, volume=1.):
 
 
 def play_sound(src, sr=_sr, **kwargs):
+    import sounddevice as sd
     data = anything2wav(src, sr=sr)
     t0 = time.time()
     sd.play(data, sr, **kwargs)

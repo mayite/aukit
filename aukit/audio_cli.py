@@ -7,7 +7,7 @@
 命令行，播放音频，去除背景噪声。
 """
 import sys
-from . import play_audio
+from .audio_player import play_audio
 from .audio_noise_remover import remove_noise_os
 
 

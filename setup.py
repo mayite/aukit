@@ -67,7 +67,7 @@ setup(
     long_description=aukit_doc,
     long_description_content_type="text/markdown",
     url="https://github.com/KuangDD/aukit",
-    packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+    packages=find_packages(exclude=['contrib', 'docs', 'test*']),
     install_requires=install_requires,  # 指定项目最低限度需要运行的依赖项
     python_requires='>=3.5',  # python的依赖关系
     package_data={

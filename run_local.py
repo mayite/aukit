@@ -100,12 +100,31 @@ def run_noise_remover():
     out = aukit.remove_noise(wav)
     aukit.play_audio(out)
 
+
 def run_player():
     import aukit
     inpath = Path(r"E:\data\aliaudio\examples\ali_Aibao_000001.wav")
     wav = aukit.load_wav(inpath, sr=16000)
     wav = aukit.change_voice(wav, mode="assign_pitch", alpha=200)
     aukit.play_audio(wav, volume=0.5)
+
+
+def run_aukit():
+    import time
+    t0 = time.time()
+    from aukit.audio_io import __doc__ as io_doc
+    from aukit.audio_editor import __doc__ as editor_doc
+    from aukit.audio_tuner import __doc__ as tuner_doc
+    from aukit.audio_player import __doc__ as player_doc
+    from aukit.audio_noise_remover import __doc__ as noise_remover_doc
+    from aukit.audio_normalizer import __doc__ as normalizer_doc
+    from aukit.audio_spectrogram import __doc__ as spectrogram_doc
+    from aukit.audio_griffinlim import __doc__ as griffinlim_doc
+    from aukit.audio_changer import __doc__ as changer_doc
+    from aukit.audio_cli import __doc__ as cli_doc
+    from aukit.audio_world import __doc__ as world_doc
+    t1 = time.time()
+    print(t1 - t0)
 
 
 if __name__ == "__main__":
@@ -115,5 +134,5 @@ if __name__ == "__main__":
     # create_readme()
     # run_tuner()
     # run_noise_remover()
-    run_player()
-    import aukit
+    # run_player()
+    run_aukit()
