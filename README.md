@@ -16,7 +16,7 @@ pip install aukit
     * aukit的默认音频采样率为16k。
 
 ### 版本
-v1.3.7
+v1.3.8
 
 ### audio_cli
 命令行，播放音频，去除背景噪声。

@@ -35,11 +35,12 @@ default_hparams = Dict2Obj(dict(
     hop_size=200,  # For 16000Hz, 200 = 12.5 ms (0.0125 * sample_rate)
     win_size=800,  # For 16000Hz, 800 = 50 ms (If None, win_size = n_fft) (0.05 * sample_rate)
     sample_rate=16000,  # 16000Hz (corresponding to librispeech) (sox --i <filename>)
-    preemphasize=False,  # whether to apply filter
+    preemphasize=True,  # whether to apply filter
     preemphasis=0.97,  # filter coefficient.
     center=True,
 
     # Whether to normalize mel spectrograms to some predefined range (following below parameters)
+    signal_normalization=True,
     allow_clipping_in_normalization=True,  # True,  # Only relevant if mel_normalization = True
     symmetric_mels=True,  # True,
     max_abs_value=4.,  # 4.,
@@ -55,6 +56,76 @@ default_hparams = Dict2Obj(dict(
     # Griffin Lim
     power=1.5,
 ))
+
+
+def linear_spectrogram(y, hparams=None):
+    hparams = hparams or default_hparams
+    D = stft(pre_emphasis(y, hparams), hparams)
+    S = amp_to_db(np.abs(D)) - hparams.ref_level_db
+    if hparams.signal_normalization:
+        return normalize(S, hparams)
+    else:
+        return S
+
+
+def mel_spectrogram(y, hparams=None):
+    hparams = hparams or default_hparams
+    D = stft(pre_emphasis(y, hparams), hparams)
+    S = amp_to_db(linear_to_mel(np.abs(D), hparams))
+    if hparams.signal_normalization:
+        return normalize(S, hparams)
+    return S
+
+
+def mel_spectrogram_feature(wav, hparams=None):
+    hparams = hparams or default_hparams
+    """
+    Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
+    Note: this not a log-mel spectrogram.
+    """
+    frames = librosa.feature.melspectrogram(
+        wav,
+        hparams.sample_rate,
+        n_fft=hparams.n_fft,
+        hop_length=hparams.hop_size,
+        n_mels=hparams.num_mels
+    )
+    return amp_to_db(frames.astype(np.float32))
+
+
+def mel2linear_spectrogram(mel_spectrogram, hparams=None):
+    """Converts mel spectrogram to linear spectrogram"""
+    hparams = hparams or default_hparams
+
+    if hparams.signal_normalization:
+        D = denormalize(mel_spectrogram, hparams)
+    else:
+        D = mel_spectrogram
+
+    D = mel_to_linear(db_to_amp(D - hparams.ref_level_db), hparams)  # Convert back to linear
+    S = amp_to_db(np.abs(D)) - hparams.ref_level_db
+
+    if hparams.signal_normalization:
+        return normalize(S, hparams)
+    return S
+
+
+def linear2mel_spectrogram(linear_spectrogram, hparams=None):
+    """Converts linear spectrogram to mel spectrogram"""
+    hparams = hparams or default_hparams
+
+    if hparams.signal_normalization:
+        D = denormalize(linear_spectrogram, hparams)
+    else:
+        D = linear_spectrogram
+
+    D = db_to_amp(D + hparams.ref_level_db)  # Convert back to linear
+
+    S = amp_to_db(linear_to_mel(np.abs(D), hparams)) - hparams.ref_level_db
+
+    if hparams.signal_normalization:
+        return normalize(S, hparams)
+    return S
 
 
 def label_2_float(x, bits):
@@ -152,36 +223,6 @@ def amp_to_db(x):
 
 def db_to_amp(x):
     return np.power(10.0, x * 0.05)
-
-
-def linear_spectrogram(y, hparams=None):
-    hparams = hparams or default_hparams
-    D = stft(pre_emphasis(y, hparams), hparams)
-    S = amp_to_db(np.abs(D)) - hparams.ref_level_db
-    return normalize(S, hparams)
-
-
-def mel_spectrogram(y, hparams=None):
-    hparams = hparams or default_hparams
-    D = stft(pre_emphasis(y, hparams), hparams)
-    S = amp_to_db(linear_to_mel(np.abs(D), hparams))
-    return normalize(S, hparams)
-
-
-def mel_spectrogram_feature(wav, hparams=None):
-    hparams = hparams or default_hparams
-    """
-    Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
-    Note: this not a log-mel spectrogram.
-    """
-    frames = librosa.feature.melspectrogram(
-        wav,
-        hparams.sample_rate,
-        n_fft=hparams.n_fft,
-        hop_length=hparams.hop_size,
-        n_mels=hparams.num_mels
-    )
-    return amp_to_db(frames.astype(np.float32))
 
 
 def stft(y, hparams=None):
