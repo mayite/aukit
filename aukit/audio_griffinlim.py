@@ -14,6 +14,7 @@ from scipy.io import wavfile
 import os
 import logging
 from .audio_spectrogram import default_hparams
+from .audio_io import Dict2Obj
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])

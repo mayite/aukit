@@ -11,17 +11,7 @@ import math
 import numpy as np
 import librosa
 
-
-class Dict2Obj(dict):
-    def __init__(self, *args, **kwargs):
-        super(Dict2Obj, self).__init__(*args, **kwargs)
-
-    def __getattr__(self, key):
-        value = self[key]
-        if isinstance(value, dict):
-            value = Dict2Obj(value)
-        return value
-
+from .audio_io import Dict2Obj
 
 # Default hyperparameters
 default_hparams = Dict2Obj(dict(

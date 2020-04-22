@@ -4,7 +4,7 @@
 # date: 2019/12/1
 """
 ### audio_io
-语音IO，语音保存、读取，语音格式转换。
+语音IO，语音保存、读取，语音格式转换，支持【.】操作符的字典。
 """
 from scipy.io import wavfile
 from pathlib import Path
@@ -17,6 +17,23 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.splitext(os.path.basename(__name__))[0])
 _sr = 16000
+
+
+class Dict2Obj(dict):
+    """支持【.】操作符的dict。"""
+    def __init__(self, *args, **kwargs):
+        """
+        字典的key是合法的变量名字符串才能支持【.】操作符。
+        :param args:
+        :param kwargs:
+        """
+        super(Dict2Obj, self).__init__(*args, **kwargs)
+
+    def __getattr__(self, key):
+        value = self[key]
+        if isinstance(value, dict):
+            value = Dict2Obj(value)
+        return value
 
 
 def load_wav(path, sr=None, with_sr=False):

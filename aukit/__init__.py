@@ -20,9 +20,9 @@ pip install aukit
     * aukit的默认音频采样率为16k。
 """
 
-__version__ = '1.3.8'
+__version__ = '1.3.9'
 
-from .audio_io import load_wav, save_wav, anything2bytesio, anything2wav, anything2bytes
+from .audio_io import load_wav, save_wav, anything2bytesio, anything2wav, anything2bytes, Dict2Obj, _sr
 from .audio_editor import strip_audio, remove_silence_audio, split_audio, set_sample_rate
 from .audio_tuner import tune_pitch, tune_speed
 from .audio_player import play_audio
