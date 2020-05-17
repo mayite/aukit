@@ -146,13 +146,43 @@ def compare_hparams():
     print(b)
 
 
+def run_normalizer():
+    import aukit
+    from aukit.audio_player import play_sound
+    from aukit import audio_normalizer as ano
+    inpath = r"E:\data\temp\01.wav"
+    wav, sr = aukit.load_wav(inpath, with_sr=True)
+    out = ano.remove_silence(wav)
+    out = ano.tune_volume(wav, target_dBFS=-10)
+    play_sound(out, sr)
+
+
+def run_editor():
+    import aukit
+    from aukit.audio_player import play_sound, play_audio
+    from aukit import audio_editor as aed
+    inpath = r"E:\data\temp\01.wav"
+    wav, sr = aukit.load_wav(inpath, with_sr=True)
+    aud = aed.wav2audiosegment(wav, sr)
+    out = aed.strip_audio(aud)
+    wav = aed.audiosegment2wav(out)
+
+    out = aed.remove_silence_wave(wav, sr=sr)
+    out = aed.strip_silence_wave(out, sr=sr)
+
+    print(len(wav), len(out))
+    play_audio(out, sr)
+
+
 if __name__ == "__main__":
     print(__file__)
-    run_spectrogram()
+    # run_spectrogram()
     # run_world()
     # create_readme()
     # run_tuner()
     # run_noise_remover()
     # run_player()
     # run_aukit()
-    compare_hparams()
+    # compare_hparams()
+    # run_normalizer()
+    run_editor()

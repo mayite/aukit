@@ -183,5 +183,23 @@ def test_audio_player():
     play_audio(_wav_bytes, sr=_sr)
 
 
+def test_audio_editor():
+    from aukit.audio_editor import split_silence_wave, strip_silence_wave, remove_silence_wave
+
+    out_wav = strip_silence_wave(_wav, sr=_sr, keep_silence_len=2)
+    assert len(out_wav) == 800
+    out_wav = remove_silence_wave(_wav, sr=_sr, keep_silence_len=2)
+    assert len(out_wav) == 800
+    out_wavs = split_silence_wave(_wav, sr=_sr, keep_silence_len=2)
+    assert len(out_wavs) == 1
+
+
+def test_normalizer():
+    from aukit.audio_normalizer import tune_volume, remove_silence
+
+    out_wav = remove_silence(_wav, vad_max_silence_length=2)
+    out_wav = tune_volume(_wav, target_dBFS=-10)
+
+
 if __name__ == "__main__":
     print(__file__)
